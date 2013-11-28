@@ -4,31 +4,83 @@ package cz.simplejvm;
 import java.util.ArrayList;
 import java.util.List;
 
+import cz.simplejvm.ClassFile.Method;
+
 public class StackFrame {
-    public int programCounter;
-    private final int[] locals;
-    private final List<Integer> stack;
+	public abstract static class StackValue {
+		final int value;
 
-    public StackFrame(int maxLocals, int maxStack) {
-        locals = new int[maxLocals];
-        stack = new ArrayList<Integer>(maxStack);
-        programCounter = 0;
-    }
+		public StackValue(int value) {
+			this.value = value;
+		}
 
-    public int popFromStack() {
-        return stack.remove(stack.size() - 1);
-    }
+		public StackValue(StackValue src) {
+			this.value = src.getValue();
+		}
 
-    public void pushToStack(int value) {
-        stack.add(value);
-    }
+		public int getValue() {
+			return value;
+		}
+	}
 
-    public void setLocal(int index, int value) {
-        locals[index] = value;
-    }
+	public static class Reference extends StackValue {
 
-    public int getLocal(int index) {
-        return locals[index];
-    }
+		public Reference(int value) {
+			super(value);
+		}
+
+		public Reference(Reference src) {
+			super(src);
+		}
+	}
+
+	public static class Int extends StackValue {
+
+		public Int(int value) {
+			super(value);
+		}
+
+		public Int(Int src) {
+			super(src);
+		}
+	}
+
+	public int programCounter;
+	private final StackValue[] locals;
+	private final List<StackValue> stack;
+	private final ClassFile classFileref;
+	private final Method methodRef;
+
+	public StackFrame(ClassFile classFile, Method method, int maxLocals, int maxStack) {
+		locals = new StackValue[maxLocals];
+		stack = new ArrayList<StackValue>(maxStack);
+		programCounter = 0;
+		classFileref = classFile;
+		methodRef = method;
+	}
+
+	public ClassFile getClassFile() {
+		return classFileref;
+	}
+
+	public Method getMethod() {
+		return methodRef;
+	}
+
+	public StackValue popFromStack() {
+		return stack.remove(stack.size() - 1);
+	}
+
+	public void pushToStack(StackValue value) {
+		stack.add(value);
+	}
+
+	public void setLocal(int index, StackValue value) {
+		locals[index] = value;
+	}
+
+	public StackValue getLocal(int index) {
+		return locals[index];
+	}
 
 }

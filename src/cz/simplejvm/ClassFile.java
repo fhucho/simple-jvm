@@ -135,7 +135,7 @@ public class ClassFile {
 
 			String rtrn = getClass().getSimpleName() + "-" + nameType.name + nameType.descriptor + "\n";
 			for (Attribute attr : attributes) {
-				rtrn += attr + "\n";
+				rtrn += "attr: " + attr + "\n";
 			}
 			return rtrn;
 		}
@@ -143,7 +143,6 @@ public class ClassFile {
 		public String getDescriptor() {
 			return descriptor;
 		}
-
 
 		public String getName() {
 			return name;
@@ -177,12 +176,25 @@ public class ClassFile {
 		}
 
 		public int getParamsCount() {
-			if(numberOfParameters==null) {
-				numberOfParameters=calculateParamCount(getDescriptor());
+			if (numberOfParameters == null) {
+				numberOfParameters = calculateParamCount(getDescriptor());
 			}
 			return numberOfParameters;
 		}
 
+		public CodeAttribute getCodeAttribute() {
+			try {
+				return (CodeAttribute) getAttributes()[0];
+			} catch (Exception e) {
+				for (Attribute attr : getAttributes()) {
+					if (attr instanceof CodeAttribute) {
+						return (CodeAttribute) attr;
+					}
+				}
+			}
+			throw new RuntimeException("Code not found");
+
+		}
 
 		private int calculateParamCount(String methodRefType) {
 			Matcher m = allParamsPattern.matcher(methodRefType);
@@ -202,7 +214,7 @@ public class ClassFile {
 		@Override
 		public String toString(Constant[] constantPool) {
 
-			return getParamsCount()+": "  + super.toString(constantPool);
+			return getParamsCount() + ": " + super.toString(constantPool);
 		}
 	}
 
@@ -221,6 +233,26 @@ public class ClassFile {
 			this.code = code;
 			this.attributes = attributes;
 		}
+
+
+
+		public int getMaxStack() {
+			return maxStack;
+		}
+
+
+
+		public int getMaxLocals() {
+			return maxLocals;
+		}
+
+
+
+		public int[] getCode() {
+			return code;
+		}
+
+
 
 		@Override
 		public String toString() {
@@ -396,9 +428,6 @@ public class ClassFile {
 		public String getDescriptor() {
 			return descriptor;
 		}
-
-
-
 
 	}
 

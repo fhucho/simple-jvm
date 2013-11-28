@@ -18,5 +18,9 @@ public class ExampleClass implements Comparable<String> {
         ex.compareTo("oo");
     }
 
+    public ExampleClass test() {
+        return null;
+    }
+
 }
 

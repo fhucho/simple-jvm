@@ -1,311 +1,345 @@
 package cz.simplejvm;
 
 public class ClassFile {
-    private final int minorNumber;
-    private final int majorNumber;
-    private final int accessFlags;
-    private final ClassConstant thisClass;
-    private final ClassConstant superClass;
-    private final ClassConstant[] interfaces;
-    private final Constant[] constantPool;
-    private final Field[] fields;
-    private final Method[] methods;
-    private final Attribute[] attributes;
+	private final int minorNumber;
+	private final int majorNumber;
+	private final int accessFlags;
+	private final ClassConstant thisClass;
+	private final ClassConstant superClass;
+	private final ClassConstant[] interfaces;
+	private final Constant[] constantPool;
+	private final Field[] fields;
+	private final Method[] methods;
+	private final Attribute[] attributes;
 
-    public ClassFile(int minorNumber, int majorNumber, int accessFlags,
-            ClassConstant thisClass, ClassConstant superClass, ClassConstant[] interfaces,
-            Constant[] constantPool, Field[] fields, Method[] methods, Attribute[] attributes) {
-        this.minorNumber = minorNumber;
-        this.majorNumber = majorNumber;
-        this.accessFlags = accessFlags;
-        this.thisClass = thisClass;
-        this.superClass = superClass;
-        this.interfaces = interfaces;
-        this.constantPool = constantPool;
-        this.fields = fields;
-        this.methods = methods;
-        this.attributes = attributes;
-    }
+	public ClassFile(int minorNumber, int majorNumber, int accessFlags,
+			ClassConstant thisClass, ClassConstant superClass, ClassConstant[] interfaces,
+			Constant[] constantPool, Field[] fields, Method[] methods, Attribute[] attributes) {
+		this.minorNumber = minorNumber;
+		this.majorNumber = majorNumber;
+		this.accessFlags = accessFlags;
+		this.thisClass = thisClass;
+		this.superClass = superClass;
+		this.interfaces = interfaces;
+		this.constantPool = constantPool;
+		this.fields = fields;
+		this.methods = methods;
+		this.attributes = attributes;
+	}
 
+	private static String getUtf8Constant(Constant[] constantPool, int index) {
+		return ((Utf8Constant) constantPool[index]).value;
+	}
 
-    @Override
-    public String toString() {
-        String rtrn="";
-        for(Member member: methods) {
-            rtrn+=member.toString(constantPool)+"\n";
-        }
-        return rtrn;
-    }
+	public void link() {
+		for (int i = 1; i < constantPool.length; i++) {
+			if (constantPool[i] != null) {
+				constantPool[i].link(constantPool);
+			}
+		}
 
-    public static class Member {
-        private final int accessFlags;
-        private final int nameIndex;
-        private final int descriptorIndex;
-        private final Attribute[] attributes;
+		thisClass.link(constantPool);
+		superClass.link(constantPool);
 
-        public Member(int accessFlags, int nameIndex, int descriptorIndex,
-                Attribute[] attributes) {
-            this.accessFlags = accessFlags;
-            this.nameIndex = nameIndex;
-            this.descriptorIndex = descriptorIndex;
-            this.attributes = attributes;
-        }
+		for (ClassConstant iface : interfaces) {
+			iface.link(constantPool);
+		}
 
-        public String toString(Constant[] constantPool) {
+		for (Field field : fields) {
+			field.link(constantPool);
+		}
 
-            NameAndTypeConstant nameType = new NameAndTypeConstant(nameIndex, descriptorIndex);
-            nameType.link(constantPool);
+		for (Method method : methods) {
+			method.link(constantPool);
+		}
+	}
 
-            String rtrn=getClass().getSimpleName() + "-" + nameType.name+nameType.descriptor+"\n";
-            for(Attribute attr: attributes) {
-                rtrn+=attr+"\n";
-            }
-            return rtrn;
-        }
-    }
+	@Override
+	public String toString() {
+		String rtrn = "";
+		for (Member member : methods) {
+			rtrn += member.toString(constantPool) + "\n";
+		}
+		return rtrn;
+	}
 
-    public static class Field extends Member {
-        public Field(int accessFlags, int nameIndex, int descriptorIndex,
-                Attribute[] attributes) {
-            super(accessFlags, nameIndex, descriptorIndex, attributes);
-        }
-    }
+	public static class Member {
+		private final int accessFlags;
+		private final int nameIndex;
+		private final int descriptorIndex;
+		private final Attribute[] attributes;
+		private String descriptor;
+		private String name;
 
-    public static class Method extends Member {
-        public Method(int accessFlags, int nameIndex, int descriptorIndex,
-                Attribute[] attributes) {
-            super(accessFlags, nameIndex, descriptorIndex, attributes);
-        }
-    }
+		public Member(int accessFlags, int nameIndex, int descriptorIndex,
+				Attribute[] attributes) {
+			this.accessFlags = accessFlags;
+			this.nameIndex = nameIndex;
+			this.descriptorIndex = descriptorIndex;
+			this.attributes = attributes;
+		}
 
-    public static abstract class Attribute {
-    }
+		public void link(Constant[] constantPool) {
+			name = getUtf8Constant(constantPool, nameIndex);
+			descriptor = getUtf8Constant(constantPool, descriptorIndex);
+		}
 
-    public static class CodeAttribute extends Attribute {
-        private final int maxStack;
-        private final int maxLocals;
-        private final int[] code;
-        private final Attribute[] attributes;
+		public String toString(Constant[] constantPool) {
 
-        public CodeAttribute(int maxStack, int maxLocals, int[] code, Attribute[] attributes) {
-            this.maxStack = maxStack;
-            this.maxLocals = maxLocals;
-            this.code = code;
-            this.attributes = attributes;
-        }
+			NameAndTypeConstant nameType = new NameAndTypeConstant(nameIndex, descriptorIndex);
+			nameType.link(constantPool);
 
-        @Override
-        public String toString() {
-            String text = "maxStack: "+ maxStack +"\n";
-            text += "maxLocals: "+ maxLocals +"\n";
-            text += "code: \n";
-            for(int instruct: code) {
-                text+= String.format("%02X ", instruct)+"\n";
-            }
-            text += "attributes: \n";
-            for(Attribute attr: attributes) {
-                text+="\t"+attr+"\n";
-            }
+			String rtrn = getClass().getSimpleName() + "-" + nameType.name
+					+ nameType.descriptor + "\n";
+			for (Attribute attr : attributes) {
+				rtrn += attr + "\n";
+			}
+			return rtrn;
+		}
+	}
 
-            return text;
-        }
-    }
+	public static class Field extends Member {
+		public Field(int accessFlags, int nameIndex, int descriptorIndex,
+				Attribute[] attributes) {
+			super(accessFlags, nameIndex, descriptorIndex, attributes);
+		}
+	}
 
-    public static abstract class Constant {
-        public void link(Constant[] constantPool) {
-        }
-    }
+	public static class Method extends Member {
+		public Method(int accessFlags, int nameIndex, int descriptorIndex,
+				Attribute[] attributes) {
+			super(accessFlags, nameIndex, descriptorIndex, attributes);
+		}
+	}
 
-    public static class ClassConstant extends Constant {
-        private final int nameIndex;
-        private String name;
+	public static abstract class Attribute {
+	}
 
-        public ClassConstant(int nameIndex) {
-            this.nameIndex = nameIndex;
-        }
+	public static class CodeAttribute extends Attribute {
+		private final int maxStack;
+		private final int maxLocals;
+		private final int[] code;
+		private final Attribute[] attributes;
 
-        @Override
-        public void link(Constant[] constantPool) {
-            name = ((Utf8Constant) constantPool[nameIndex]).value;
-        }
+		public CodeAttribute(int maxStack, int maxLocals, int[] code, Attribute[] attributes) {
+			this.maxStack = maxStack;
+			this.maxLocals = maxLocals;
+			this.code = code;
+			this.attributes = attributes;
+		}
 
-        public String getName() {
-            return name;
-        }
-    }
+		@Override
+		public String toString() {
+			String text = "maxStack: " + maxStack + "\n";
+			text += "maxLocals: " + maxLocals + "\n";
+			text += "code: \n";
+			for (int instruct : code) {
+				text += String.format("%02X ", instruct) + "\n";
+			}
+			text += "attributes: \n";
+			for (Attribute attr : attributes) {
+				text += "\t" + attr + "\n";
+			}
 
-    public static class RefConstant extends Constant {
-        private final int classIndex;
-        private final int nameAndTypeIndex;
-        private ClassConstant clazz;
-        private NameAndTypeConstant nameAndType;
+			return text;
+		}
+	}
 
-        public RefConstant(int classIndex, int nameAndTypeIndex) {
-            this.classIndex = classIndex;
-            this.nameAndTypeIndex = nameAndTypeIndex;
-        }
+	public static abstract class Constant {
+		public void link(Constant[] constantPool) {
+		}
+	}
 
-        @Override
-        public void link(Constant[] constantPool) {
-            clazz = (ClassConstant) constantPool[classIndex];
-            nameAndType = (NameAndTypeConstant) constantPool[nameAndTypeIndex];
-        }
+	public static class ClassConstant extends Constant {
+		private final int nameIndex;
+		private String name;
 
-        public ClassConstant getClazz() {
-            return clazz;
-        }
+		public ClassConstant(int nameIndex) {
+			this.nameIndex = nameIndex;
+		}
 
-        public NameAndTypeConstant getNameAndType() {
-            return nameAndType;
-        }
-    }
+		@Override
+		public void link(Constant[] constantPool) {
+			name = getUtf8Constant(constantPool, nameIndex);
+		}
 
-    public static class FieldRefConstant extends RefConstant {
-        public FieldRefConstant(int classIndex, int nameAndTypeIndex) {
-            super(classIndex, nameAndTypeIndex);
-        }
-    }
+		public String getName() {
+			return name;
+		}
+	}
 
-    public static class MethodRefConstant extends RefConstant {
-        public MethodRefConstant(int classIndex, int nameAndTypeIndex) {
-            super(classIndex, nameAndTypeIndex);
-        }
-    }
+	public static class RefConstant extends Constant {
+		private final int classIndex;
+		private final int nameAndTypeIndex;
+		private ClassConstant clazz;
+		private NameAndTypeConstant nameAndType;
 
-    public static class InterfaceMethodRefConstant extends RefConstant {
-        public InterfaceMethodRefConstant(int classIndex, int nameAndTypeIndex) {
-            super(classIndex, nameAndTypeIndex);
-        }
-    }
+		public RefConstant(int classIndex, int nameAndTypeIndex) {
+			this.classIndex = classIndex;
+			this.nameAndTypeIndex = nameAndTypeIndex;
+		}
 
-    public static class StringConstant extends Constant {
-        private final int stringIndex;
-        private String value;
+		@Override
+		public void link(Constant[] constantPool) {
+			clazz = (ClassConstant) constantPool[classIndex];
+			nameAndType = (NameAndTypeConstant) constantPool[nameAndTypeIndex];
+		}
 
-        public StringConstant(int stringIndex) {
-            this.stringIndex = stringIndex;
-        }
+		public ClassConstant getClazz() {
+			return clazz;
+		}
 
-        @Override
-        public void link(Constant[] constantPool) {
-            value = ((Utf8Constant) constantPool[stringIndex]).value;
-        }
+		public NameAndTypeConstant getNameAndType() {
+			return nameAndType;
+		}
+	}
 
-        public String getValue() {
-            return value;
-        }
-    }
+	public static class FieldRefConstant extends RefConstant {
+		public FieldRefConstant(int classIndex, int nameAndTypeIndex) {
+			super(classIndex, nameAndTypeIndex);
+		}
+	}
 
-    public static class IntegerConstant extends Constant {
-        private final int value;
+	public static class MethodRefConstant extends RefConstant {
+		public MethodRefConstant(int classIndex, int nameAndTypeIndex) {
+			super(classIndex, nameAndTypeIndex);
+		}
+	}
 
-        public IntegerConstant(int value) {
-            this.value = value;
-        }
+	public static class InterfaceMethodRefConstant extends RefConstant {
+		public InterfaceMethodRefConstant(int classIndex, int nameAndTypeIndex) {
+			super(classIndex, nameAndTypeIndex);
+		}
+	}
 
-        public int getValue() {
-            return value;
-        }
-    }
+	public static class StringConstant extends Constant {
+		private final int stringIndex;
+		private String value;
 
-    public static class FloatConstant extends Constant {
-        private final float value;
+		public StringConstant(int stringIndex) {
+			this.stringIndex = stringIndex;
+		}
 
-        public FloatConstant(float value) {
-            this.value = value;
-        }
+		@Override
+		public void link(Constant[] constantPool) {
+			value = getUtf8Constant(constantPool, stringIndex);
+		}
 
-        public float getValue() {
-            return value;
-        }
-    }
+		public String getValue() {
+			return value;
+		}
+	}
 
-    public static class LongConstant extends Constant {
-        private final long value;
+	public static class IntegerConstant extends Constant {
+		private final int value;
 
-        public LongConstant(long value) {
-            this.value = value;
-        }
+		public IntegerConstant(int value) {
+			this.value = value;
+		}
 
-        public long getValue() {
-            return value;
-        }
-    }
+		public int getValue() {
+			return value;
+		}
+	}
 
-    public static class DoubleConstant extends Constant {
-        private final double value;
+	public static class FloatConstant extends Constant {
+		private final float value;
 
-        public DoubleConstant(double value) {
-            this.value = value;
-        }
+		public FloatConstant(float value) {
+			this.value = value;
+		}
 
-        public double getValue() {
-            return value;
-        }
-    }
+		public float getValue() {
+			return value;
+		}
+	}
 
-    public static class NameAndTypeConstant extends Constant {
-        private final int nameIndex;
-        private final int descriptorIndex;
-        private String name;
-        private String descriptor;
+	public static class LongConstant extends Constant {
+		private final long value;
 
-        public NameAndTypeConstant(int nameIndex, int descriptorIndex) {
-            this.nameIndex = nameIndex;
-            this.descriptorIndex = descriptorIndex;
-        }
+		public LongConstant(long value) {
+			this.value = value;
+		}
 
-        @Override
-        public void link(Constant[] constantPool) {
-            name = ((Utf8Constant) constantPool[nameIndex]).value;
-            descriptor = ((Utf8Constant) constantPool[descriptorIndex]).value;
-        }
-    }
+		public long getValue() {
+			return value;
+		}
+	}
 
-    public static class Utf8Constant extends Constant {
-        private final String value;
+	public static class DoubleConstant extends Constant {
+		private final double value;
 
-        public Utf8Constant(String value) {
-            this.value = value;
-        }
+		public DoubleConstant(double value) {
+			this.value = value;
+		}
 
-        public String getValue() {
-            return value;
-        }
-    }
+		public double getValue() {
+			return value;
+		}
+	}
 
-    public static class MethodHandleConstant extends Constant {
-        private final int referenceKind;
-        private final int referenceIndex;
+	public static class NameAndTypeConstant extends Constant {
+		private final int nameIndex;
+		private final int descriptorIndex;
+		private String name;
+		private String descriptor;
 
-        public MethodHandleConstant(int referenceKind, int referenceIndex) {
-            this.referenceKind = referenceKind;
-            this.referenceIndex = referenceIndex;
-        }
-    }
+		public NameAndTypeConstant(int nameIndex, int descriptorIndex) {
+			this.nameIndex = nameIndex;
+			this.descriptorIndex = descriptorIndex;
+		}
 
-    public static class MethodTypeConstant extends Constant {
-        private final int descriptorIndex;
-        private String descriptor;
+		@Override
+		public void link(Constant[] constantPool) {
+			name = getUtf8Constant(constantPool, nameIndex);
+			descriptor = getUtf8Constant(constantPool, descriptorIndex);
+		}
+	}
 
-        public MethodTypeConstant(int descriptorIndex) {
-            this.descriptorIndex = descriptorIndex;
-        }
+	public static class Utf8Constant extends Constant {
+		private final String value;
 
-        @Override
-        public void link(Constant[] constantPool) {
-            descriptor = ((Utf8Constant) constantPool[descriptorIndex]).value;
-        }
+		public Utf8Constant(String value) {
+			this.value = value;
+		}
 
-    }
+		public String getValue() {
+			return value;
+		}
+	}
 
-    public static class InvokeDynamicConstant extends Constant {
-        private final int bootstrapMethodAttrIndex;
-        private final int nameAndTypeIndex;
+	public static class MethodHandleConstant extends Constant {
+		private final int referenceKind;
+		private final int referenceIndex;
 
-        public InvokeDynamicConstant(int bootstrapMethodAttrIndex, int nameAndTypeIndex) {
-            this.bootstrapMethodAttrIndex = bootstrapMethodAttrIndex;
-            this.nameAndTypeIndex = nameAndTypeIndex;
-        }
-    }
+		public MethodHandleConstant(int referenceKind, int referenceIndex) {
+			this.referenceKind = referenceKind;
+			this.referenceIndex = referenceIndex;
+		}
+	}
+
+	public static class MethodTypeConstant extends Constant {
+		private final int descriptorIndex;
+		private String descriptor;
+
+		public MethodTypeConstant(int descriptorIndex) {
+			this.descriptorIndex = descriptorIndex;
+		}
+
+		@Override
+		public void link(Constant[] constantPool) {
+			descriptor = getUtf8Constant(constantPool, descriptorIndex);
+		}
+
+	}
+
+	public static class InvokeDynamicConstant extends Constant {
+		private final int bootstrapMethodAttrIndex;
+		private final int nameAndTypeIndex;
+
+		public InvokeDynamicConstant(int bootstrapMethodAttrIndex, int nameAndTypeIndex) {
+			this.bootstrapMethodAttrIndex = bootstrapMethodAttrIndex;
+			this.nameAndTypeIndex = nameAndTypeIndex;
+		}
+	}
 }

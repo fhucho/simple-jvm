@@ -34,8 +34,8 @@ public class Runtime {
 		return stackFrames.get(stackFrames.size() - 1);
 	}
 
-	private int getCurrInst() {
-		return getByteCode()[sf().programCounter];
+	private byte getCurrInst() {
+		return (byte) getByteCode()[sf().programCounter];
 	}
 
 	private ClassFile cf() {
@@ -153,11 +153,44 @@ public class Runtime {
 			case Instructions.new_:
 				new_();
 				break;
+			case Instructions.dup:
+				dup();
+				break;
+			case Instructions.bipush:
+				bipush();
+				break;
+			case Instructions.sipush:
+				sipush();
+				break;
+			case Instructions.iinc:
+				iinc();
+				break;
+			case Instructions.goto_:
+				goto_();
+				break;
 
 			default:
 				throw new RuntimeException("Instruction not supported " + instruction);
 		}
 	}
+
+	private int readInt() {
+		sf().programCounter++;
+		byte indexbyte1 = getCurrInst();
+		sf().programCounter++;
+		byte indexbyte2 = getCurrInst();
+		return (((indexbyte1 & 0xFF) << 8) | (indexbyte2 & 0xFF));
+	}
+
+	private short readSignedShort() {
+		sf().programCounter++;
+		byte indexbyte1 = getCurrInst();
+		sf().programCounter++;
+		byte indexbyte2 = getCurrInst();
+		return (short) (((indexbyte1 & 0xFF) << 8) | (indexbyte2 & 0xFF));
+	}
+
+	// ---------------------------------------
 
 	private void load() {
 		sf().programCounter++;
@@ -189,7 +222,7 @@ public class Runtime {
 	}
 
 	private void putfield() {
-		long fieldRefIndex = readLongIndex();
+		long fieldRefIndex = readInt();
 		StackValue value = sf().popFromStack();
 		StackValue objectref = sf().popFromStack();
 
@@ -240,9 +273,9 @@ public class Runtime {
 	}
 
 	private void invokeMethod() {
-		long methodRefIndex = readLongIndex();
+		int methodRefIndex = readInt();
 
-		MethodRefConstant method = (MethodRefConstant) cp()[(int) methodRefIndex];
+		MethodRefConstant method = (MethodRefConstant) cp()[methodRefIndex];
 		ClassConstant clazz = method.getClazz();
 		NameAndTypeConstant name = method.getNameAndType();
 		ClassFile newClassfile = ClassFileResolver.getInstance().getClassFile(clazz);
@@ -264,21 +297,48 @@ public class Runtime {
 
 	}
 
-	private long readLongIndex() {
-		sf().programCounter++;
-		int indexbyte1 = getCurrInst();
-		sf().programCounter++;
-		int indexbyte2 = getCurrInst();
-		return indexbyte1 << 8 + indexbyte2;
-	}
-
 	private void new_() {
-		long classIndex = readLongIndex();
-		MethodRefConstant method = (MethodRefConstant) cp()[(int) classIndex];
+		int classIndex = readInt();
+		MethodRefConstant method = (MethodRefConstant) cp()[classIndex];
 		ClassFile newClassfile = ClassFileResolver.getInstance().getClassFile(method.getClazz());
 		int reference = new ClassInstance(newClassfile).saveToHeap();
 		sf().pushToStack(new Reference(reference));
 		sf().programCounter++;
+	}
+
+	private void dup() {
+		StackValue value = sf().popFromStack();
+		sf().pushToStack(value);
+		sf().pushToStack(value);
+		sf().programCounter++;
+	}
+
+	private void bipush() {
+		sf().programCounter++;
+		int value = getCurrInst();
+		sf().pushToStack(new Int(value));
+		sf().programCounter++;
+	}
+
+	private void sipush() {
+		int value = readInt();
+		sf().pushToStack(new Int(value));
+		sf().programCounter++;
+	}
+
+	private void iinc() {
+		sf().programCounter++;
+		int index = getCurrInst();
+		sf().programCounter++;
+		int cons = getCurrInst();
+		Int value = (Int) sf().getLocal(index);
+		sf().pushToStack(new Int(value.getValue() + cons));
+		sf().programCounter++;
+
+	}
+
+	private void goto_() {
+		sf().programCounter += readSignedShort();
 	}
 
 }

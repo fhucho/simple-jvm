@@ -1,14 +1,30 @@
 package cz.simplejvm;
 
-import cz.simplejvm.Constant.Ref;
-
 public class ClassFile {
 	private final int minorNumber;
 	private final int majorNumber;
+	private final int accessFlags;
+	private final ClassConstant thisClass;
+	private final ClassConstant superClass;
+	private final ClassConstant[] interfaces;
+	private final Constant[] constantPool;
+	private final Field[] fields;
+	private final Method[] methods;
+	private final Attribute[] attributes;
 
-	public ClassFile(int minorNumber, int majorNumber) {
+	public ClassFile(int minorNumber, int majorNumber, int accessFlags,
+			ClassConstant thisClass, ClassConstant superClass, ClassConstant[] interfaces,
+			Constant[] constantPool, Field[] fields, Method[] methods, Attribute[] attributes) {
 		this.minorNumber = minorNumber;
 		this.majorNumber = majorNumber;
+		this.accessFlags = accessFlags;
+		this.thisClass = thisClass;
+		this.superClass = superClass;
+		this.interfaces = interfaces;
+		this.constantPool = constantPool;
+		this.fields = fields;
+		this.methods = methods;
+		this.attributes = attributes;
 	}
 
 	public static class Member {
@@ -37,15 +53,23 @@ public class ClassFile {
 		public Method(int accessFlags, int nameIndex, int descriptorIndex,
 				Attribute[] attributes) {
 			super(accessFlags, nameIndex, descriptorIndex, attributes);
-
 		}
 	}
 
-	public static class Attribute {
-		private final int nameIndex;
+	public static abstract class Attribute {
+	}
 
-		public Attribute(int nameIndex) {
-			this.nameIndex = nameIndex;
+	public static class CodeAttribute extends Attribute {
+		private final int maxStack;
+		private final int maxLocals;
+		private final int[] code;
+		private final Attribute[] attributes;
+
+		public CodeAttribute(int maxStack, int maxLocals, int[] code, Attribute[] attributes) {
+			this.maxStack = maxStack;
+			this.maxLocals = maxLocals;
+			this.code = code;
+			this.attributes = attributes;
 		}
 	}
 
@@ -88,11 +112,11 @@ public class ClassFile {
 			clazz = (ClassConstant) constantPool[classIndex];
 			nameAndType = (NameAndTypeConstant) constantPool[nameAndTypeIndex];
 		}
-		
+
 		public ClassConstant getClazz() {
 			return clazz;
 		}
-		
+
 		public NameAndTypeConstant getNameAndType() {
 			return nameAndType;
 		}
@@ -123,12 +147,12 @@ public class ClassFile {
 		public StringConstant(int stringIndex) {
 			this.stringIndex = stringIndex;
 		}
-		
+
 		@Override
 		public void link(Constant[] constantPool) {
 			value = ((Utf8Constant) constantPool[stringIndex]).value;
 		}
-		
+
 		public String getValue() {
 			return value;
 		}
@@ -140,7 +164,7 @@ public class ClassFile {
 		public IntegerConstant(int value) {
 			this.value = value;
 		}
-		
+
 		public int getValue() {
 			return value;
 		}
@@ -152,7 +176,7 @@ public class ClassFile {
 		public FloatConstant(float value) {
 			this.value = value;
 		}
-		
+
 		public float getValue() {
 			return value;
 		}
@@ -164,7 +188,7 @@ public class ClassFile {
 		public LongConstant(long value) {
 			this.value = value;
 		}
-		
+
 		public long getValue() {
 			return value;
 		}
@@ -176,7 +200,7 @@ public class ClassFile {
 		public DoubleConstant(double value) {
 			this.value = value;
 		}
-		
+
 		public double getValue() {
 			return value;
 		}
@@ -192,7 +216,7 @@ public class ClassFile {
 			this.nameIndex = nameIndex;
 			this.descriptorIndex = descriptorIndex;
 		}
-		
+
 		@Override
 		public void link(Constant[] constantPool) {
 			name = ((Utf8Constant) constantPool[nameIndex]).value;
@@ -206,7 +230,7 @@ public class ClassFile {
 		public Utf8Constant(String value) {
 			this.value = value;
 		}
-		
+
 		public String getValue() {
 			return value;
 		}
@@ -229,7 +253,7 @@ public class ClassFile {
 		public MethodTypeConstant(int descriptorIndex) {
 			this.descriptorIndex = descriptorIndex;
 		}
-		
+
 		@Override
 		public void link(Constant[] constantPool) {
 			descriptor = ((Utf8Constant) constantPool[descriptorIndex]).value;

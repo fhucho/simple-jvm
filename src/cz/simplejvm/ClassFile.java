@@ -1,3 +1,4 @@
+
 package cz.simplejvm;
 
 public class ClassFile {
@@ -12,9 +13,8 @@ public class ClassFile {
 	private final Method[] methods;
 	private final Attribute[] attributes;
 
-	public ClassFile(int minorNumber, int majorNumber, int accessFlags,
-			ClassConstant thisClass, ClassConstant superClass, ClassConstant[] interfaces,
-			Constant[] constantPool, Field[] fields, Method[] methods, Attribute[] attributes) {
+	public ClassFile(int minorNumber, int majorNumber, int accessFlags, ClassConstant thisClass, ClassConstant superClass, ClassConstant[] interfaces, Constant[] constantPool, Field[] fields,
+			Method[] methods, Attribute[] attributes) {
 		this.minorNumber = minorNumber;
 		this.majorNumber = majorNumber;
 		this.accessFlags = accessFlags;
@@ -56,7 +56,8 @@ public class ClassFile {
 
 	@Override
 	public String toString() {
-		String rtrn = "";
+		String rtrn = thisClass.name + "\n";
+		rtrn += superClass.name + "\n";
 		for (Member member : methods) {
 			rtrn += member.toString(constantPool) + "\n";
 		}
@@ -71,8 +72,7 @@ public class ClassFile {
 		private String descriptor;
 		private String name;
 
-		public Member(int accessFlags, int nameIndex, int descriptorIndex,
-				Attribute[] attributes) {
+		public Member(int accessFlags, int nameIndex, int descriptorIndex, Attribute[] attributes) {
 			this.accessFlags = accessFlags;
 			this.nameIndex = nameIndex;
 			this.descriptorIndex = descriptorIndex;
@@ -89,8 +89,7 @@ public class ClassFile {
 			NameAndTypeConstant nameType = new NameAndTypeConstant(nameIndex, descriptorIndex);
 			nameType.link(constantPool);
 
-			String rtrn = getClass().getSimpleName() + "-" + nameType.name
-					+ nameType.descriptor + "\n";
+			String rtrn = getClass().getSimpleName() + "-" + nameType.name + nameType.descriptor + "\n";
 			for (Attribute attr : attributes) {
 				rtrn += attr + "\n";
 			}
@@ -99,15 +98,13 @@ public class ClassFile {
 	}
 
 	public static class Field extends Member {
-		public Field(int accessFlags, int nameIndex, int descriptorIndex,
-				Attribute[] attributes) {
+		public Field(int accessFlags, int nameIndex, int descriptorIndex, Attribute[] attributes) {
 			super(accessFlags, nameIndex, descriptorIndex, attributes);
 		}
 	}
 
 	public static class Method extends Member {
-		public Method(int accessFlags, int nameIndex, int descriptorIndex,
-				Attribute[] attributes) {
+		public Method(int accessFlags, int nameIndex, int descriptorIndex, Attribute[] attributes) {
 			super(accessFlags, nameIndex, descriptorIndex, attributes);
 		}
 	}

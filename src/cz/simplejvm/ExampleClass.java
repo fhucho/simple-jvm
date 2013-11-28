@@ -1,23 +1,20 @@
 package cz.simplejvm;
 
 
-public class ExampleClass implements Comparable<String> {
+public class ExampleClass implements Comparable<Integer> {
     int a = 5456455;
-    String b = "sasa";
+
 
 
 
     @Override
-    public int compareTo(String o) {
-        int a=1;
-        int b=2;
-        int c = a+b;
-        return c;
+    public int compareTo(Integer o) {
+        return o.compareTo(a);
     }
 
     public static void start() {
         ExampleClass ex = new ExampleClass();
-        ex.compareTo("oo");
+        ex.compareTo(1);
 
         int array[] =new int[20];
         for(int i=0; i<12; i++) {

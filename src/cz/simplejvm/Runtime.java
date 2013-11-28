@@ -4,12 +4,14 @@ package cz.simplejvm;
 import java.util.ArrayList;
 import java.util.List;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 import cz.simplejvm.ClassFile.ClassConstant;
 import cz.simplejvm.ClassFile.Constant;
 import cz.simplejvm.ClassFile.FieldRefConstant;
 import cz.simplejvm.ClassFile.IntegerConstant;
+import cz.simplejvm.ClassFile.MethodRefConstant;
 import cz.simplejvm.ClassFile.NameAndTypeConstant;
-import cz.simplejvm.ClassFile.StringConstant;
 
 public class Runtime {
     List<StackFrame> stackFrames;
@@ -109,7 +111,6 @@ public class Runtime {
                 ldc();
                 break;
 
-
             default:
                 break;
         }
@@ -143,6 +144,7 @@ public class Runtime {
         sf().setLocal(index, value);
         sf().programCounter++;
     }
+
     private void putfield() {
         sf().programCounter++;
         int indexbyte1 = getCurrInst();
@@ -152,11 +154,11 @@ public class Runtime {
         int value = sf().popFromStack();
         int objectref = sf().popFromStack();
 
-        FieldRefConstant frc = new FieldRefConstant(objectref, (int) fieldRefIndex);
-        frc.link(cp());
+
+        FieldRefConstant frc = (FieldRefConstant) cp()[(int) fieldRefIndex];
         ClassConstant clazz = frc.getClazz();
         NameAndTypeConstant name = frc.getNameAndType();
-        //TODO: Save to heap
+        // TODO: Save to heap
         sf().programCounter++;
     }
 
@@ -164,18 +166,52 @@ public class Runtime {
         sf().programCounter++;
         int index = getCurrInst();
         try {
-            StringConstant stringConstant = new StringConstant(index);
-            stringConstant.link(cp());
-            //TODO: Save String to heap and push reference
-
-
+            int value = ((IntegerConstant)cp()[index]).getValue();
+            sf().pushToStack(value);
         } catch (ClassCastException e) {
-            IntegerConstant intConstant = new IntegerConstant(index);
-            intConstant.link(cp());
-            sf().pushToStack(intConstant.getValue());
+            throw new NotImplementedException();//stringy nejsou podporovany
+            //            StringConstant stringConstant = new StringConstant(index);
+            //            stringConstant.link(cp());
+            // TODO: Save String to heap and push reference
         }
 
         sf().programCounter++;
     }
+
+    private void iadd() {
+        int value1 = sf().popFromStack();
+        int value2 = sf().popFromStack();
+        sf().pushToStack(value1 + value2);
+        sf().programCounter++;
+    }
+
+    private void ireturn() {
+        // TODO:
+        // Pops an int from the top of the stack and pushes it onto the operand stack of the invoker (i.e. the method which used invokevirtual, invokespecial, invokestatic or invokeinterface to call
+        // the currently executing method). All other items on the current method's operand stack are discarded. If the current method is marked as synchronized, then an implicit monitorexit
+        // instruction is executed. Then the current method's frame is discarded, the invoker's frame is reinstated, and control returns to the invoker. This instruction can only be used in methods
+        // whose return type is int.
+    }
+    private void return_() {
+        //TODO:
+    }
+
+    private void invokeSpecial() {
+        sf().programCounter++;
+        int indexbyte1 = getCurrInst();
+        sf().programCounter++;
+        int indexbyte2 = getCurrInst();
+        long methodRefIndex = indexbyte1 << 8 + indexbyte2;
+
+        MethodRefConstant method = (MethodRefConstant) cp()[(int) methodRefIndex];
+        ClassConstant clazz = method.getClazz();
+        NameAndTypeConstant name = method.getNameAndType();
+
+
+        //TODO:
+    }
+
+
+
 
 }

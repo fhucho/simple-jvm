@@ -1,6 +1,9 @@
 
 package cz.simplejvm;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class ClassFile {
 	private final int minorNumber;
 	private final int majorNumber;
@@ -25,6 +28,47 @@ public class ClassFile {
 		this.fields = fields;
 		this.methods = methods;
 		this.attributes = attributes;
+	}
+
+	public int getAccessFlags() {
+		return accessFlags;
+	}
+
+	public ClassConstant getThisClass() {
+		return thisClass;
+	}
+
+	public ClassConstant getSuperClass() {
+		return superClass;
+	}
+
+	public ClassConstant[] getInterfaces() {
+		return interfaces;
+	}
+
+	public Constant[] getConstantPool() {
+		return constantPool;
+	}
+
+	public Field[] getFields() {
+		return fields;
+	}
+
+	public Method[] getMethods() {
+		return methods;
+	}
+
+	public Method getMethod(String methodName) {
+		for (Method method : methods) {
+			if (method.getName().equals(methodName)) {
+				return method;
+			}
+		}
+		return null;
+	}
+
+	public Attribute[] getAttributes() {
+		return attributes;
 	}
 
 	private static String getUtf8Constant(Constant[] constantPool, int index) {
@@ -95,6 +139,24 @@ public class ClassFile {
 			}
 			return rtrn;
 		}
+
+		public String getDescriptor() {
+			return descriptor;
+		}
+
+
+		public String getName() {
+			return name;
+		}
+
+		public int getAccessFlags() {
+			return accessFlags;
+		}
+
+		public Attribute[] getAttributes() {
+			return attributes;
+		}
+
 	}
 
 	public static class Field extends Member {
@@ -104,8 +166,43 @@ public class ClassFile {
 	}
 
 	public static class Method extends Member {
+
+		private static Pattern allParamsPattern = Pattern.compile("(\\(.*?\\))");
+		private static Pattern paramsPattern = Pattern.compile("(\\[?)(C|Z|S|I|J|F|D|(:?L[^;]+;))");
+
+		private Integer numberOfParameters;
+
 		public Method(int accessFlags, int nameIndex, int descriptorIndex, Attribute[] attributes) {
 			super(accessFlags, nameIndex, descriptorIndex, attributes);
+		}
+
+		public int getParamsCount() {
+			if(numberOfParameters==null) {
+				numberOfParameters=calculateParamCount(getDescriptor());
+			}
+			return numberOfParameters;
+		}
+
+
+		private int calculateParamCount(String methodRefType) {
+			Matcher m = allParamsPattern.matcher(methodRefType);
+			if (!m.find()) {
+				throw new IllegalArgumentException("Method signature does not contain parameters");
+			}
+			String paramsDescriptor = m.group(1);
+			Matcher mParam = paramsPattern.matcher(paramsDescriptor);
+
+			int count = 0;
+			while (mParam.find()) {
+				count++;
+			}
+			return count;
+		}
+
+		@Override
+		public String toString(Constant[] constantPool) {
+
+			return getParamsCount()+": "  + super.toString(constantPool);
 		}
 	}
 
@@ -291,6 +388,18 @@ public class ClassFile {
 			name = getUtf8Constant(constantPool, nameIndex);
 			descriptor = getUtf8Constant(constantPool, descriptorIndex);
 		}
+
+		public String getName() {
+			return name;
+		}
+
+		public String getDescriptor() {
+			return descriptor;
+		}
+
+
+
+
 	}
 
 	public static class Utf8Constant extends Constant {

@@ -1,25 +1,29 @@
 package cz.simplejvm;
 
 
-public class ExampleClass implements Comparable<Integer> {
-	int a = 5456455;
+public class ExampleClass {
+	int a;
 
 
-
-
-	@Override
-	public int compareTo(Integer o) {
-		return o.compareTo(a);
+	public ExampleClass() {
+		a= 5456455;
 	}
+
+	public native void testStr(String str);
+
+
+
+
 
 	public static void start() {
 		ExampleClass ex = new ExampleClass();
-		ex.compareTo(1);
 
 		int array[] =new int[20];
 		for(int i=0; i<12; i++) {
 			array[i]=i;
 		}
+
+
 
 
 	}
@@ -51,6 +55,7 @@ public class ExampleClass implements Comparable<Integer> {
 
 	public void testParams(int a, int b, int c) {
 		testNative();
+		testStr("dsdssds");
 	}
 
 	public native void testNative();

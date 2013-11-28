@@ -14,6 +14,7 @@ import cz.simplejvm.ClassFile.Method;
 import cz.simplejvm.ClassFile.MethodRefConstant;
 import cz.simplejvm.ClassFile.NameAndTypeConstant;
 import cz.simplejvm.StackFrame.Int;
+import cz.simplejvm.StackFrame.Reference;
 import cz.simplejvm.StackFrame.StackValue;
 
 public class Runtime {
@@ -149,9 +150,12 @@ public class Runtime {
 			case Instructions.invokevirtual:
 				invokeMethod();
 				break;
+			case Instructions.new_:
+				new_();
+				break;
 
 			default:
-				break;
+				throw new RuntimeException("Instruction not supported " + instruction);
 		}
 	}
 
@@ -192,7 +196,11 @@ public class Runtime {
 		FieldRefConstant frc = (FieldRefConstant) cp()[(int) fieldRefIndex];
 		ClassConstant clazz = frc.getClazz();
 		NameAndTypeConstant name = frc.getNameAndType();
-		// TODO: Save to heap
+		ClassFile fieldClassFile = ClassFileResolver.getInstance().getClassFile(clazz);
+
+		ClassInstance classInstance = ClassInstance.loadFromHeap(fieldClassFile, objectref.value);
+		classInstance.setField(name, value.value);
+
 		sf().programCounter++;
 	}
 
@@ -267,8 +275,10 @@ public class Runtime {
 	private void new_() {
 		long classIndex = readLongIndex();
 		MethodRefConstant method = (MethodRefConstant) cp()[(int) classIndex];
-		//TODO:
-
+		ClassFile newClassfile = ClassFileResolver.getInstance().getClassFile(method.getClazz());
+		int reference = new ClassInstance(newClassfile).saveToHeap();
+		sf().pushToStack(new Reference(reference));
+		sf().programCounter++;
 	}
 
 }

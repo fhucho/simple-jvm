@@ -15,6 +15,6 @@ public class Main {
 		Runtime runtime = new Runtime();
 		runtime.start("cz/simplejvm/app/Knapsack", "start", "()V");
 
-		new Knapsack().start();
+		Knapsack.start();
 	}
 }

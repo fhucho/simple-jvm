@@ -8,6 +8,7 @@ import java.util.Map;
 
 import cz.simplejvm.ClassFile.Field;
 import cz.simplejvm.ClassFile.FieldRefConstant;
+import cz.simplejvm.StackFrame.Int;
 import cz.simplejvm.StackFrame.Reference;
 import cz.simplejvm.StackFrame.Value;
 
@@ -16,6 +17,10 @@ public class Heap {
 
 	public ArrayInstance getArray(Reference reference) {
 		return (ArrayInstance) objects.get(reference.value);
+	}
+
+	public PrimitiveArrayInstance getPrimitiveArray(Reference reference) {
+		return (PrimitiveArrayInstance) objects.get(reference.value);
 	}
 
 	public ObjectInstance getObject(Reference reference) {
@@ -32,6 +37,13 @@ public class Heap {
 	public ArrayInstance newArray(ClassFile classFile, int length) {
 		Reference reference = new Reference(objects.size());
 		ArrayInstance a = new ArrayInstance(classFile, length, reference);
+		objects.add(a);
+		return a;
+	}
+
+	public PrimitiveArrayInstance newArray(int primitiveType, int length) {
+		Reference reference = new Reference(objects.size());
+		PrimitiveArrayInstance a = new PrimitiveArrayInstance(primitiveType, length, reference);
 		objects.add(a);
 		return a;
 	}
@@ -92,6 +104,27 @@ public class Heap {
 
 		public void setItem(int index, Value value) {
 			items[index] = value;
+		}
+	}
+
+	public static class PrimitiveArrayInstance extends Instance {
+		private final int[] items;
+
+		public PrimitiveArrayInstance(int type, int length, Reference reference) {
+			super(null, reference);
+			items = new int[length];
+		}
+
+		public Int getItem(int index) {
+			return new Int(items[index]);
+		}
+
+		public int getLength() {
+			return items.length;
+		}
+
+		public void setItem(int index, Int value) {
+			items[index] = value.getValue();
 		}
 	}
 }

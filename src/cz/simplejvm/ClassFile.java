@@ -58,9 +58,9 @@ public class ClassFile {
 		return methods;
 	}
 
-	public Method getMethod(String methodName) {
+	public Method getMethod(String methodName, String methodDesc) {
 		for (Method method : methods) {
-			if (method.getName().equals(methodName)) {
+			if (method.getName().equals(methodName) && method.getDescriptor().equals(methodDesc)) {
 				return method;
 			}
 		}

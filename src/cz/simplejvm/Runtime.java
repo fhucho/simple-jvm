@@ -11,6 +11,7 @@ import cz.simplejvm.ClassFile.Method;
 import cz.simplejvm.ClassFile.MethodRefConstant;
 import cz.simplejvm.ClassFile.NameAndTypeConstant;
 import cz.simplejvm.Heap.ObjectInstance;
+import cz.simplejvm.Heap.PrimitiveArrayInstance;
 import cz.simplejvm.NativeResolver.NativeMethod;
 import cz.simplejvm.StackFrame.Int;
 import cz.simplejvm.StackFrame.Reference;
@@ -67,9 +68,9 @@ public class Runtime {
 		return finished;
 	}
 
-	public void start(String className, String methodName) {
+	public void start(String className, String methodName, String methodDesc) {
 		ClassFile newClassfile = ClassFileResolver.getInstance().getClassFile(className);
-		Method newMethod = newClassfile.getMethod(methodName);
+		Method newMethod = newClassfile.getMethod(methodName, methodDesc);
 		if (newMethod == null) {
 			throw new RuntimeException("Method " + methodName + " not found");
 		}
@@ -82,9 +83,9 @@ public class Runtime {
 		while (!isFinished()) {
 			int instruction = getCurrInst();
 
-			System.out.print(sf().programCounter + " Instruction ");
-
-			System.out.println(String.format("%02X ", instruction));
+			//			System.out.print(sf().programCounter + " Instruction ");
+			//
+			//			System.out.println(String.format("%02X ", instruction));
 			executeCurrentInstruction(instruction);
 		}
 	}
@@ -167,6 +168,7 @@ public class Runtime {
 				iadd();
 				break;
 			case Instructions.ireturn:
+			case Instructions.areturn:
 				ireturn();
 				break;
 			case Instructions.return_:
@@ -178,6 +180,9 @@ public class Runtime {
 				break;
 			case Instructions.new_:
 				new_();
+				break;
+			case Instructions.newarray:
+				newarray();
 				break;
 			case Instructions.dup:
 				dup();
@@ -205,6 +210,9 @@ public class Runtime {
 				break;
 			case Instructions.ifeq:
 				ifeq();
+				break;
+			case Instructions.iastore:
+				iastore();
 				break;
 
 			default:
@@ -315,6 +323,8 @@ public class Runtime {
 		}
 	}
 
+
+
 	private void return_() {
 		removeStackFrame();
 	}
@@ -335,7 +345,7 @@ public class Runtime {
 			return;
 		}
 
-		Method newMethod = newClassfile.getMethod(name.getName());
+		Method newMethod = newClassfile.getMethod(name.getName(), name.getDescriptor());
 		if (newMethod == null) {
 			throw new RuntimeException("Method " + name.getName() + " not found");
 		}
@@ -374,6 +384,27 @@ public class Runtime {
 		sf().programCounter++;
 	}
 
+	private void newarray() {
+		sf().programCounter++;
+		int type = getCurrInst();
+		Int size = (Int) sf().popFromStack();
+
+		PrimitiveArrayInstance array = heap.newArray(type, size.value);
+		sf().pushToStack(array.getReference());
+		sf().programCounter++;
+	}
+
+	private void iastore() {
+		Int value = (Int) sf().popFromStack();
+		Int index = (Int) sf().popFromStack();
+		Reference reference = (Reference) sf().popFromStack();
+
+		PrimitiveArrayInstance array = heap.getPrimitiveArray(reference);
+		array.setItem(index.value, value);
+		sf().programCounter++;
+
+	}
+
 	private void dup() {
 		Value value = sf().popFromStack();
 		sf().pushToStack(value);
@@ -404,11 +435,11 @@ public class Runtime {
 		sf().programCounter++;
 
 	}
+
 	private void pop() {
 		sf().popFromStack();
 		sf().programCounter++;
 	}
-
 
 	private void goto_() {
 		int pc = sf().programCounter;
@@ -423,27 +454,26 @@ public class Runtime {
 		if (value2.value < value1.value) {
 			goto_();
 		} else {
-			sf().programCounter+=3;
+			sf().programCounter += 3;
 		}
 	}
 
 	private void ifne() {
 		Int value = (Int) sf().popFromStack();
-		if (value.value !=0) {
+		if (value.value != 0) {
 			goto_();
 		} else {
-			sf().programCounter+=3;
+			sf().programCounter += 3;
 		}
 	}
 
 	private void ifeq() {
 		Int value = (Int) sf().popFromStack();
-		if (value.value ==0) {
+		if (value.value == 0) {
 			goto_();
 		} else {
-			sf().programCounter+=3;
+			sf().programCounter += 3;
 		}
 	}
-
 
 }

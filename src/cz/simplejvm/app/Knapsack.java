@@ -6,6 +6,7 @@ public class Knapsack {
 	private final int[] weights = { 6, 5, 4, 7, 3 };
 
 	public int priceOfConfig(boolean[] config) {
+		new NativeMethods().print(2222);
 		int price = 0;
 		int weight = 0;
 		for (int i = 0; i < config.length; i++) {
@@ -18,6 +19,7 @@ public class Knapsack {
 	}
 
 	public void copyConfig(boolean[] src, boolean[] dst) {
+		new NativeMethods().print(3333);
 		for (int i = 0; i < src.length; i++) {
 			dst[i] = src[i];
 		}
@@ -26,12 +28,15 @@ public class Knapsack {
 	public boolean[] solve() {
 		boolean[] config = new boolean[5];
 		boolean[] bestConfig = new boolean[5];
+		new NativeMethods().print(111);
 		solve(0, config, bestConfig, 0);
 		return bestConfig;
 	}
 
 	public int solve(int index, boolean[] config, boolean[] bestConfig, int bestPrice) {
+		new NativeMethods().print(000004544);
 		if (index == weights.length) {
+			new NativeMethods().print(11111);
 			int price = priceOfConfig(config);
 			if (price > bestPrice) {
 				price = priceOfConfig(config);
@@ -39,6 +44,7 @@ public class Knapsack {
 			}
 			return bestPrice;
 		} else {
+			new NativeMethods().print(bestPrice);
 			config[index] = false;
 			int price1 = solve(index + 1, config, bestConfig, bestPrice);
 			if (price1 > bestPrice) {

@@ -4,7 +4,6 @@ package cz.simplejvm;
 import java.util.ArrayList;
 import java.util.List;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import cz.simplejvm.ClassFile.ClassConstant;
 import cz.simplejvm.ClassFile.CodeAttribute;
 import cz.simplejvm.ClassFile.Constant;
@@ -244,7 +243,8 @@ public class Runtime {
 			StackValue value = new Int(((IntegerConstant) cp()[index]).getValue());
 			sf().pushToStack(value);
 		} catch (ClassCastException e) {
-			throw new NotImplementedException();// stringy nejsou podporovany
+			throw new UnsupportedOperationException();
+			// stringy nejsou podporovany
 			// StringConstant stringConstant = new StringConstant(index);
 			// stringConstant.link(cp());
 			// TODO: Save String to heap and push reference

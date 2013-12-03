@@ -8,5 +8,4 @@ public class Main {
 		ClassFile claz = ClassFileResolver.getInstance().getClassFile("cz/simplejvm/ExampleClass");
 		System.out.println(claz.toString());
 	}
-
 }

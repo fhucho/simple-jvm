@@ -83,9 +83,9 @@ public class Runtime {
 		while (!isFinished()) {
 			int instruction = getCurrInst();
 
-			//			System.out.print(sf().programCounter + " Instruction ");
-			//
-			//			System.out.println(String.format("%02X ", instruction));
+			System.out.print(sf().programCounter + " Instruction ");
+
+			System.out.println(String.format("%02X ", instruction));
 			executeCurrentInstruction(instruction);
 		}
 	}
@@ -205,6 +205,23 @@ public class Runtime {
 			case Instructions.if_icmplt:
 				if_icmplt();
 				break;
+			case Instructions.if_icmple:
+				if_icmple();
+				break;
+			case Instructions.if_icmpge:
+				if_icmpge();
+				break;
+			case Instructions.if_icmpgt:
+				if_icmpgt();
+				break;
+			case Instructions.if_icmpeq:
+			case Instructions.if_acmpeq:
+				if_cmpeq();
+				break;
+			case Instructions.if_icmpne:
+			case Instructions.if_acmpne:
+				if_cmpne();
+				break;
 			case Instructions.ifne:
 				ifne();
 				break;
@@ -212,7 +229,16 @@ public class Runtime {
 				ifeq();
 				break;
 			case Instructions.iastore:
+			case Instructions.bastore:
 				iastore();
+				break;
+
+			case Instructions.iaload:
+			case Instructions.baload:
+				iaload();
+				break;
+			case Instructions.arraylength:
+				arraylength();
 				break;
 
 			default:
@@ -323,8 +349,6 @@ public class Runtime {
 		}
 	}
 
-
-
 	private void return_() {
 		removeStackFrame();
 	}
@@ -402,7 +426,23 @@ public class Runtime {
 		PrimitiveArrayInstance array = heap.getPrimitiveArray(reference);
 		array.setItem(index.value, value);
 		sf().programCounter++;
+	}
 
+	private void iaload() {
+		Int index = (Int) sf().popFromStack();
+		Reference reference = (Reference) sf().popFromStack();
+
+		PrimitiveArrayInstance array = heap.getPrimitiveArray(reference);
+		sf().pushToStack(array.getItem(index.value));
+		sf().programCounter++;
+	}
+
+	private void arraylength() {
+		Reference reference = (Reference) sf().popFromStack();
+		PrimitiveArrayInstance array = heap.getPrimitiveArray(reference);
+		sf().pushToStack(new Int(array.getLength()));
+
+		sf().programCounter++;
 	}
 
 	private void dup() {
@@ -452,6 +492,56 @@ public class Runtime {
 		Int value1 = (Int) sf().popFromStack();
 		Int value2 = (Int) sf().popFromStack();
 		if (value2.value < value1.value) {
+			goto_();
+		} else {
+			sf().programCounter += 3;
+		}
+	}
+
+	private void if_icmple() {
+		Int value1 = (Int) sf().popFromStack();
+		Int value2 = (Int) sf().popFromStack();
+		if (value2.value <= value1.value) {
+			goto_();
+		} else {
+			sf().programCounter += 3;
+		}
+	}
+
+	private void if_icmpgt() {
+		Int value1 = (Int) sf().popFromStack();
+		Int value2 = (Int) sf().popFromStack();
+		if (value2.value > value1.value) {
+			goto_();
+		} else {
+			sf().programCounter += 3;
+		}
+	}
+
+	private void if_icmpge() {
+		Int value1 = (Int) sf().popFromStack();
+		Int value2 = (Int) sf().popFromStack();
+		if (value2.value >= value1.value) {
+			goto_();
+		} else {
+			sf().programCounter += 3;
+		}
+	}
+
+	private void if_cmpne() {
+		Value value1 = sf().popFromStack();
+		Value value2 = sf().popFromStack();
+		if (value2.value != value1.value) {
+			goto_();
+		} else {
+			sf().programCounter += 3;
+		}
+	}
+
+	private void if_cmpeq() {
+		Value value1 = sf().popFromStack();
+		Value value2 = sf().popFromStack();
+		if (value2.value == value1.value) {
 			goto_();
 		} else {
 			sf().programCounter += 3;

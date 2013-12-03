@@ -3,6 +3,7 @@ package cz.simplejvm.app;
 
 public class ExampleClass {
 	int a;
+	NativeMethods nativeMethods = new NativeMethods();
 
 
 	public ExampleClass() {
@@ -14,7 +15,16 @@ public class ExampleClass {
 
 	public void addTest(int number) {
 		int result = a+number+3;
-		new NativeMethods().print(result);
+		nativeMethods.print(result);
+	}
+
+	public void testBoolean() {
+		boolean aaa = true;
+		if(aaa!=false) {
+			nativeMethods.print(0);
+		}else {
+			nativeMethods.print(1);
+		}
 	}
 
 
@@ -30,6 +40,7 @@ public class ExampleClass {
 		ExampleClass clazz = new ExampleClass();
 		new NativeMethods().print(c);
 		clazz.addTest(c);
+		clazz.testBoolean();
 	}
 
 	public int arrayTest1(int a) {

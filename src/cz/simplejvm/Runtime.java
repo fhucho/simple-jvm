@@ -82,7 +82,7 @@ public class Runtime {
 		while (!isFinished()) {
 			int instruction = getCurrInst();
 
-			System.out.print(sf().programCounter + " Instruction " + instruction + " ");
+			System.out.print(sf().programCounter + " Instruction ");
 
 			System.out.println(String.format("%02X ", instruction));
 			executeCurrentInstruction(instruction);
@@ -191,15 +191,24 @@ public class Runtime {
 			case Instructions.iinc:
 				iinc();
 				break;
+			case Instructions.pop:
+				pop();
+				break;
 			case Instructions.goto_:
 				goto_();
 				break;
 			case Instructions.if_icmplt:
 				if_icmplt();
 				break;
+			case Instructions.ifne:
+				ifne();
+				break;
+			case Instructions.ifeq:
+				ifeq();
+				break;
 
 			default:
-				throw new RuntimeException("Instruction not supported " + instruction);
+				throw new RuntimeException("Instruction not supported " + String.format("%02X ", instruction));
 		}
 	}
 
@@ -395,6 +404,11 @@ public class Runtime {
 		sf().programCounter++;
 
 	}
+	private void pop() {
+		sf().popFromStack();
+		sf().programCounter++;
+	}
+
 
 	private void goto_() {
 		int pc = sf().programCounter;
@@ -411,12 +425,25 @@ public class Runtime {
 		} else {
 			sf().programCounter+=3;
 		}
-
 	}
 
-	private void pop() {
-		sf().popFromStack();
-		sf().programCounter++;
+	private void ifne() {
+		Int value = (Int) sf().popFromStack();
+		if (value.value !=0) {
+			goto_();
+		} else {
+			sf().programCounter+=3;
+		}
 	}
+
+	private void ifeq() {
+		Int value = (Int) sf().popFromStack();
+		if (value.value ==0) {
+			goto_();
+		} else {
+			sf().programCounter+=3;
+		}
+	}
+
 
 }

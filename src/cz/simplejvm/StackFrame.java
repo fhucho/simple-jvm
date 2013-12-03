@@ -7,14 +7,14 @@ import java.util.List;
 import cz.simplejvm.ClassFile.Method;
 
 public class StackFrame {
-	public abstract static class StackValue {
+	public abstract static class Value {
 		final int value;
 
-		public StackValue(int value) {
+		public Value(int value) {
 			this.value = value;
 		}
 
-		public StackValue(StackValue src) {
+		public Value(Value src) {
 			this.value = src.getValue();
 		}
 
@@ -23,7 +23,7 @@ public class StackFrame {
 		}
 	}
 
-	public static class Reference extends StackValue {
+	public static class Reference extends Value {
 
 		public Reference(int value) {
 			super(value);
@@ -34,7 +34,7 @@ public class StackFrame {
 		}
 	}
 
-	public static class Int extends StackValue {
+	public static class Int extends Value {
 
 		public Int(int value) {
 			super(value);
@@ -46,14 +46,14 @@ public class StackFrame {
 	}
 
 	public int programCounter;
-	private final StackValue[] locals;
-	private final List<StackValue> stack;
+	private final Value[] locals;
+	private final List<Value> stack;
 	private final ClassFile classFileref;
 	private final Method methodRef;
 
 	public StackFrame(ClassFile classFile, Method method, int maxLocals, int maxStack) {
-		locals = new StackValue[maxLocals];
-		stack = new ArrayList<StackValue>(maxStack);
+		locals = new Value[maxLocals];
+		stack = new ArrayList<Value>(maxStack);
 		programCounter = 0;
 		classFileref = classFile;
 		methodRef = method;
@@ -67,19 +67,19 @@ public class StackFrame {
 		return methodRef;
 	}
 
-	public StackValue popFromStack() {
+	public Value popFromStack() {
 		return stack.remove(stack.size() - 1);
 	}
 
-	public void pushToStack(StackValue value) {
+	public void pushToStack(Value value) {
 		stack.add(value);
 	}
 
-	public void setLocal(int index, StackValue value) {
+	public void setLocal(int index, Value value) {
 		locals[index] = value;
 	}
 
-	public StackValue getLocal(int index) {
+	public Value getLocal(int index) {
 		return locals[index];
 	}
 

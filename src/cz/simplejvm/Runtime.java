@@ -7,20 +7,22 @@ import java.util.List;
 import cz.simplejvm.ClassFile.ClassConstant;
 import cz.simplejvm.ClassFile.CodeAttribute;
 import cz.simplejvm.ClassFile.Constant;
-import cz.simplejvm.ClassFile.FieldRefConstant;
 import cz.simplejvm.ClassFile.IntegerConstant;
 import cz.simplejvm.ClassFile.Method;
 import cz.simplejvm.ClassFile.MethodRefConstant;
 import cz.simplejvm.ClassFile.NameAndTypeConstant;
+import cz.simplejvm.Heap.ObjectInstance;
 import cz.simplejvm.StackFrame.Int;
 import cz.simplejvm.StackFrame.Reference;
-import cz.simplejvm.StackFrame.StackValue;
+import cz.simplejvm.StackFrame.Value;
 
 public class Runtime {
 	List<StackFrame> stackFrames;
+	private Heap heap;
 
 	public Runtime() {
 		stackFrames = new ArrayList<StackFrame>();
+		heap = new Heap();
 	}
 
 	// ---------------------------
@@ -133,6 +135,9 @@ public class Runtime {
 			case Instructions.putfield:
 				putfield();
 				break;
+			case Instructions.getfield:
+				getfield();
+				break;
 			case Instructions.ldc:
 				ldc();
 				break;
@@ -215,38 +220,29 @@ public class Runtime {
 	}
 
 	private void store(int index) {
-		StackValue value = sf().popFromStack();
+		Value value = sf().popFromStack();
 		sf().setLocal(index, value);
 		sf().programCounter++;
 	}
 
 	private void putfield() {
-		long fieldRefIndex = readInt();
-		StackValue value = sf().popFromStack();
-		StackValue objectref = sf().popFromStack();
+		int fieldRefIndex = readInt();
+		Value value = sf().popFromStack();
+		Reference objectref = (Reference) sf().popFromStack();
 
-		FieldRefConstant frc = (FieldRefConstant) cp()[(int) fieldRefIndex];
-		ClassConstant clazz = frc.getClazz();
-		NameAndTypeConstant name = frc.getNameAndType();
-		ClassFile fieldClassFile = ClassFileResolver.getInstance().getClassFile(clazz);
-
-		ClassInstance classInstance = ClassInstance.loadFromHeap(fieldClassFile, objectref.value);
-		classInstance.setField(name, value);
+		ObjectInstance instance = heap.getObject(objectref);
+		instance.putField(fieldRefIndex, value);
 
 		sf().programCounter++;
 	}
 
 	private void getfield() {
-		long fieldRefIndex = readInt();
-		StackValue objectref = sf().popFromStack();
+		int fieldRefIndex = readInt();
+		Reference objectref = (Reference) sf().popFromStack();
 
-		FieldRefConstant frc = (FieldRefConstant) cp()[(int) fieldRefIndex];
-		ClassConstant clazz = frc.getClazz();
-		NameAndTypeConstant name = frc.getNameAndType();
-		ClassFile fieldClassFile = ClassFileResolver.getInstance().getClassFile(clazz);
+		ObjectInstance instance = heap.getObject(objectref);
+		Value value = instance.getField(fieldRefIndex);
 
-		ClassInstance classInstance = ClassInstance.loadFromHeap(fieldClassFile, objectref.value);
-		StackValue value = classInstance.getField(name);
 		sf().pushToStack(value);
 
 		sf().programCounter++;
@@ -256,7 +252,7 @@ public class Runtime {
 		sf().programCounter++;
 		int index = getCurrInst();
 		try {
-			StackValue value = new Int(((IntegerConstant) cp()[index]).getValue());
+			Value value = new Int(((IntegerConstant) cp()[index]).getValue());
 			sf().pushToStack(value);
 		} catch (ClassCastException e) {
 			throw new UnsupportedOperationException();
@@ -270,14 +266,14 @@ public class Runtime {
 	}
 
 	private void iadd() {
-		StackValue value1 = sf().popFromStack();
-		StackValue value2 = sf().popFromStack();
+		Value value1 = sf().popFromStack();
+		Value value2 = sf().popFromStack();
 		sf().pushToStack(new Int(value1.getValue() + value2.getValue()));
 		sf().programCounter++;
 	}
 
 	private void ireturn() {
-		StackValue value = sf().popFromStack();
+		Value value = sf().popFromStack();
 		removeStackFrame();
 		if (!isFinished()) {
 			sf().pushToStack(value);
@@ -317,13 +313,14 @@ public class Runtime {
 		int classIndex = readInt();
 		MethodRefConstant method = (MethodRefConstant) cp()[classIndex];
 		ClassFile newClassfile = ClassFileResolver.getInstance().getClassFile(method.getClazz());
-		int reference = new ClassInstance(newClassfile).saveToHeap();
-		sf().pushToStack(new Reference(reference));
+
+		ObjectInstance newInstance = heap.newObject(newClassfile);
+		sf().pushToStack(newInstance.getReference());
 		sf().programCounter++;
 	}
 
 	private void dup() {
-		StackValue value = sf().popFromStack();
+		Value value = sf().popFromStack();
 		sf().pushToStack(value);
 		sf().pushToStack(value);
 		sf().programCounter++;

@@ -9,7 +9,6 @@ public class ExampleClass {
 		a= 5456455;
 	}
 
-	public native void testStr(String str);
 
 
 
@@ -23,7 +22,6 @@ public class ExampleClass {
 		int c = a+b;
 		ExampleClass clazz = new ExampleClass();
 		new NativeMethods().print(c);
-		clazz.a=5;
 		clazz.test2(c);
 	}
 
@@ -52,10 +50,6 @@ public class ExampleClass {
 		return null;
 	}
 
-	public void testParams(int a, int b, int c) {
-		//		testNative();
-		testStr("dsdssds");
-	}
 
 }
 

@@ -82,7 +82,7 @@ public class Runtime {
 		while (!isFinished()) {
 			int instruction = getCurrInst();
 
-			System.out.print(sf().programCounter + " Instruction " + instruction+ " ");
+			System.out.print(sf().programCounter + " Instruction " + instruction + " ");
 
 			System.out.println(String.format("%02X ", instruction));
 			executeCurrentInstruction(instruction);
@@ -193,6 +193,9 @@ public class Runtime {
 				break;
 			case Instructions.goto_:
 				goto_();
+				break;
+			case Instructions.if_icmplt:
+				if_icmplt();
 				break;
 
 			default:
@@ -317,7 +320,7 @@ public class Runtime {
 		ClassFile newClassfile;
 		try {
 			newClassfile = ClassFileResolver.getInstance().getClassFile(clazz);
-		} catch (Exception e) {//skip
+		} catch (Exception e) {// skip
 			e.printStackTrace();
 			sf().programCounter++;
 			return;
@@ -328,18 +331,18 @@ public class Runtime {
 			throw new RuntimeException("Method " + name.getName() + " not found");
 		}
 
-		//-------------handle native methods-------------
+		// -------------handle native methods-------------
 		NativeMethod nativeCheck = NativeResolver.checkForNative(method);
-		if(nativeCheck!=null) {
+		if (nativeCheck != null) {
 			nativeCheck.invoke(newMethod, sf());
-			if(nativeCheck.hasResult()) {
+			if (nativeCheck.hasResult()) {
 				sf().pushToStack(nativeCheck.getResult());
 			}
 			sf().programCounter++;
 			return;
 		}
 
-		//--------------handle other methods---------------
+		// --------------handle other methods---------------
 
 		int paramsCount = newMethod.getParamsCount();
 		StackFrame newStack = new StackFrame(newClassfile, newMethod);
@@ -354,7 +357,6 @@ public class Runtime {
 
 	private void new_() {
 		int classIndex = readInt();
-		Constant[] cpool = cp();
 		ClassConstant clazz = (ClassConstant) cp()[classIndex];
 		ClassFile newClassfile = ClassFileResolver.getInstance().getClassFile(clazz.getName());
 
@@ -389,13 +391,32 @@ public class Runtime {
 		sf().programCounter++;
 		int cons = getCurrInst();
 		Int value = (Int) sf().getLocal(index);
-		sf().pushToStack(new Int(value.getValue() + cons));
+		sf().setLocal(index, new Int(value.getValue() + cons));
 		sf().programCounter++;
 
 	}
 
 	private void goto_() {
-		sf().programCounter += readSignedShort();
+		int pc = sf().programCounter;
+		short offset = readSignedShort();
+		System.out.println("Goto offset " + offset + ", pc = " + pc);
+		sf().programCounter = pc + offset;
+	}
+
+	private void if_icmplt() {
+		Int value1 = (Int) sf().popFromStack();
+		Int value2 = (Int) sf().popFromStack();
+		if (value2.value < value1.value) {
+			goto_();
+		} else {
+			sf().programCounter+=3;
+		}
+
+	}
+
+	private void pop() {
+		sf().popFromStack();
+		sf().programCounter++;
 	}
 
 }

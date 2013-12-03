@@ -83,9 +83,8 @@ public class Runtime {
 		while (!isFinished()) {
 			int instruction = getCurrInst();
 
-			System.out.print(sf().programCounter + " Instruction ");
-
-			System.out.println(String.format("%02X ", instruction));
+			//			System.out.print(sf().programCounter + " Instruction ");
+			//			System.out.println(String.format("%02X ", instruction));
 			executeCurrentInstruction(instruction);
 		}
 	}
@@ -484,7 +483,7 @@ public class Runtime {
 	private void goto_() {
 		int pc = sf().programCounter;
 		short offset = readSignedShort();
-		System.out.println("Goto offset " + offset + ", pc = " + pc);
+		//		System.out.println("Goto offset " + offset + ", pc = " + pc);
 		sf().programCounter = pc + offset;
 	}
 

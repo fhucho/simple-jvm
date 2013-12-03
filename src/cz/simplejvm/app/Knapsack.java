@@ -63,6 +63,11 @@ public class Knapsack {
 	}
 
 	public static void start() {
+		NativeMethods nm = new NativeMethods();
 		boolean[] config = new Knapsack().solve();
+		nm.print(5555555);
+		for(boolean value: config) {
+			nm.print(value?1:0);
+		}
 	}
 }

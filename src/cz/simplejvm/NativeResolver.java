@@ -7,6 +7,7 @@ import java.util.List;
 import cz.simplejvm.ClassFile.Method;
 import cz.simplejvm.ClassFile.MethodRefConstant;
 import cz.simplejvm.StackFrame.Value;
+import cz.simplejvm.app.NativeMethods;
 
 public class NativeResolver {
 	public static NativeMethod checkForNative(MethodRefConstant method) {
@@ -56,7 +57,7 @@ public class NativeResolver {
 
 		@Override
 		protected void run(List<Value> params) {
-			System.out.println("****RESULT****" + params.get(0).value + "");
+			new NativeMethods().print(params.get(0).value);
 		}
 
 	}

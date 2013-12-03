@@ -206,13 +206,6 @@ public class Runtime {
 		int indexbyte1 = getCurrInst();
 		sf().programCounter++;
 		int indexbyte2 = getCurrInst();
-
-		System.out.println(String.format("%02X ", indexbyte1));
-		System.out.println(String.format("%02X ", indexbyte2));
-
-		System.out.println(String.format("%04X ", ((indexbyte1 & 0xFF) << 8) | (indexbyte2 & 0xFF)));
-		System.out.println((((indexbyte1 & 0xFF) << 8) | (indexbyte2 & 0xFF))+"");
-
 		return (((indexbyte1 & 0xFF) << 8) | (indexbyte2 & 0xFF));
 	}
 
@@ -250,14 +243,6 @@ public class Runtime {
 	}
 
 	private void store(int index) {
-		//		System.out.println("istore");
-		//		int instruction = getCurrInst();
-		//
-		//		System.out.print("Instruction " + instruction+ " ");
-		//
-		//		System.out.println(String.format("%02X ", instruction));
-
-
 		Value value = sf().popFromStack();
 		sf().setLocal(index, value);
 		sf().programCounter++;

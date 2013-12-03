@@ -2,6 +2,8 @@
 package cz.simplejvm;
 
 import cz.simplejvm.ClassFile.NameAndTypeConstant;
+import cz.simplejvm.StackFrame.StackValue;
+import cz.simplejvm.StackFrame.Int;
 
 public class ClassInstance {
 	// TODO: fields
@@ -23,8 +25,13 @@ public class ClassInstance {
 		return new ClassInstance();
 	}
 
-	public void setField(NameAndTypeConstant name, int value) {
+	public void setField(NameAndTypeConstant name, StackValue value) {
 		// TODO: save to heap
+	}
+
+	public StackValue getField(NameAndTypeConstant name) {
+		// TODO: load Reference or Int
+		return new Int(0);
 	}
 
 }

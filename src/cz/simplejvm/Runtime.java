@@ -231,7 +231,23 @@ public class Runtime {
 		ClassFile fieldClassFile = ClassFileResolver.getInstance().getClassFile(clazz);
 
 		ClassInstance classInstance = ClassInstance.loadFromHeap(fieldClassFile, objectref.value);
-		classInstance.setField(name, value.value);
+		classInstance.setField(name, value);
+
+		sf().programCounter++;
+	}
+
+	private void getfield() {
+		long fieldRefIndex = readInt();
+		StackValue objectref = sf().popFromStack();
+
+		FieldRefConstant frc = (FieldRefConstant) cp()[(int) fieldRefIndex];
+		ClassConstant clazz = frc.getClazz();
+		NameAndTypeConstant name = frc.getNameAndType();
+		ClassFile fieldClassFile = ClassFileResolver.getInstance().getClassFile(clazz);
+
+		ClassInstance classInstance = ClassInstance.loadFromHeap(fieldClassFile, objectref.value);
+		StackValue value = classInstance.getField(name);
+		sf().pushToStack(value);
 
 		sf().programCounter++;
 	}

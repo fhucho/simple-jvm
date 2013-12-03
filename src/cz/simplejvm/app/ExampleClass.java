@@ -1,4 +1,4 @@
-package cz.simplejvm;
+package cz.simplejvm.app;
 
 
 public class ExampleClass {
@@ -13,19 +13,18 @@ public class ExampleClass {
 
 
 
-
+	private void test2(int number) {
+		new NativeMethods().print(a+number+3);
+	}
 
 	public static void start() {
-		ExampleClass ex = new ExampleClass();
-
-		int array[] =new int[20];
-		for(int i=0; i<12; i++) {
-			array[i]=i;
-		}
-
-
-
-
+		int a=3;
+		int b=6;
+		int c = a+b;
+		ExampleClass clazz = new ExampleClass();
+		new NativeMethods().print(c);
+		clazz.a=5;
+		clazz.test2(c);
 	}
 
 	public int testArray(int a) {
@@ -54,11 +53,9 @@ public class ExampleClass {
 	}
 
 	public void testParams(int a, int b, int c) {
-		testNative();
+		//		testNative();
 		testStr("dsdssds");
 	}
-
-	public native void testNative();
 
 }
 

@@ -5,13 +5,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cz.simplejvm.ClassFile.ClassConstant;
-import cz.simplejvm.ClassFile.CodeAttribute;
 import cz.simplejvm.ClassFile.Constant;
 import cz.simplejvm.ClassFile.IntegerConstant;
 import cz.simplejvm.ClassFile.Method;
 import cz.simplejvm.ClassFile.MethodRefConstant;
 import cz.simplejvm.ClassFile.NameAndTypeConstant;
 import cz.simplejvm.Heap.ObjectInstance;
+import cz.simplejvm.NativeResolver.NativeMethod;
 import cz.simplejvm.StackFrame.Int;
 import cz.simplejvm.StackFrame.Reference;
 import cz.simplejvm.StackFrame.Value;
@@ -19,6 +19,7 @@ import cz.simplejvm.StackFrame.Value;
 public class Runtime {
 	List<StackFrame> stackFrames;
 	private Heap heap;
+	private boolean finished = false;
 
 	public Runtime() {
 		stackFrames = new ArrayList<StackFrame>();
@@ -35,8 +36,8 @@ public class Runtime {
 		return stackFrames.get(stackFrames.size() - 1);
 	}
 
-	private byte getCurrInst() {
-		return (byte) getByteCode()[sf().programCounter];
+	private int getCurrInst() {
+		return getByteCode()[sf().programCounter];
 	}
 
 	private ClassFile cf() {
@@ -59,17 +60,38 @@ public class Runtime {
 	}
 
 	private void finish() {
-
+		finished = true;
 	}
 
 	private boolean isFinished() {
-		return false;
+		return finished;
+	}
+
+	public void start(String className, String methodName) {
+		ClassFile newClassfile = ClassFileResolver.getInstance().getClassFile(className);
+		Method newMethod = newClassfile.getMethod(methodName);
+		if (newMethod == null) {
+			throw new RuntimeException("Method " + methodName + " not found");
+		}
+		StackFrame newStack = new StackFrame(newClassfile, newMethod);
+		addStackFrame(newStack);
+		run();
+	}
+
+	private void run() {
+		while (!isFinished()) {
+			int instruction = getCurrInst();
+
+			System.out.print(sf().programCounter + " Instruction " + instruction+ " ");
+
+			System.out.println(String.format("%02X ", instruction));
+			executeCurrentInstruction(instruction);
+		}
 	}
 
 	// -------------------
 
-	private void executeCurrentInstruction() {
-		int instruction = getCurrInst();
+	private void executeCurrentInstruction(int instruction) {
 		switch (instruction) {
 			case Instructions.aload_0:
 			case Instructions.iload_0:
@@ -179,18 +201,26 @@ public class Runtime {
 	}
 
 	private int readInt() {
+
 		sf().programCounter++;
-		byte indexbyte1 = getCurrInst();
+		int indexbyte1 = getCurrInst();
 		sf().programCounter++;
-		byte indexbyte2 = getCurrInst();
+		int indexbyte2 = getCurrInst();
+
+		System.out.println(String.format("%02X ", indexbyte1));
+		System.out.println(String.format("%02X ", indexbyte2));
+
+		System.out.println(String.format("%04X ", ((indexbyte1 & 0xFF) << 8) | (indexbyte2 & 0xFF)));
+		System.out.println((((indexbyte1 & 0xFF) << 8) | (indexbyte2 & 0xFF))+"");
+
 		return (((indexbyte1 & 0xFF) << 8) | (indexbyte2 & 0xFF));
 	}
 
 	private short readSignedShort() {
 		sf().programCounter++;
-		byte indexbyte1 = getCurrInst();
+		int indexbyte1 = getCurrInst();
 		sf().programCounter++;
-		byte indexbyte2 = getCurrInst();
+		int indexbyte2 = getCurrInst();
 		return (short) (((indexbyte1 & 0xFF) << 8) | (indexbyte2 & 0xFF));
 	}
 
@@ -220,6 +250,14 @@ public class Runtime {
 	}
 
 	private void store(int index) {
+		//		System.out.println("istore");
+		//		int instruction = getCurrInst();
+		//
+		//		System.out.print("Instruction " + instruction+ " ");
+		//
+		//		System.out.println(String.format("%02X ", instruction));
+
+
 		Value value = sf().popFromStack();
 		sf().setLocal(index, value);
 		sf().programCounter++;
@@ -290,16 +328,36 @@ public class Runtime {
 		MethodRefConstant method = (MethodRefConstant) cp()[methodRefIndex];
 		ClassConstant clazz = method.getClazz();
 		NameAndTypeConstant name = method.getNameAndType();
-		ClassFile newClassfile = ClassFileResolver.getInstance().getClassFile(clazz);
+
+		ClassFile newClassfile;
+		try {
+			newClassfile = ClassFileResolver.getInstance().getClassFile(clazz);
+		} catch (Exception e) {//skip
+			e.printStackTrace();
+			sf().programCounter++;
+			return;
+		}
+
 		Method newMethod = newClassfile.getMethod(name.getName());
 		if (newMethod == null) {
 			throw new RuntimeException("Method " + name.getName() + " not found");
 		}
 
-		int paramsCount = newMethod.getParamsCount();
-		CodeAttribute codeAttr = newMethod.getCodeAttribute();
+		//-------------handle native methods-------------
+		NativeMethod nativeCheck = NativeResolver.checkForNative(method);
+		if(nativeCheck!=null) {
+			nativeCheck.invoke(newMethod, sf());
+			if(nativeCheck.hasResult()) {
+				sf().pushToStack(nativeCheck.getResult());
+			}
+			sf().programCounter++;
+			return;
+		}
 
-		StackFrame newStack = new StackFrame(newClassfile, newMethod, codeAttr.getMaxLocals(), codeAttr.getMaxStack());
+		//--------------handle other methods---------------
+
+		int paramsCount = newMethod.getParamsCount();
+		StackFrame newStack = new StackFrame(newClassfile, newMethod);
 		for (int i = paramsCount; i >= 0; i--) {// set local variables and new this reference
 			newStack.setLocal(i, sf().popFromStack());
 		}
@@ -311,8 +369,9 @@ public class Runtime {
 
 	private void new_() {
 		int classIndex = readInt();
-		MethodRefConstant method = (MethodRefConstant) cp()[classIndex];
-		ClassFile newClassfile = ClassFileResolver.getInstance().getClassFile(method.getClazz());
+		Constant[] cpool = cp();
+		ClassConstant clazz = (ClassConstant) cp()[classIndex];
+		ClassFile newClassfile = ClassFileResolver.getInstance().getClassFile(clazz.getName());
 
 		ObjectInstance newInstance = heap.newObject(newClassfile);
 		sf().pushToStack(newInstance.getReference());

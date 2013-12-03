@@ -133,7 +133,7 @@ public class ClassFile {
 			NameAndTypeConstant nameType = new NameAndTypeConstant(nameIndex, descriptorIndex);
 			nameType.link(constantPool);
 
-			String rtrn = getClass().getSimpleName() + "-" + nameType.name + nameType.descriptor + "\n";
+			String rtrn = getClass().getSimpleName() + "-" + nameType.name +"-"+ nameType.descriptor + "\n";
 			for (Attribute attr : attributes) {
 				rtrn += "attr: " + attr + "\n";
 			}

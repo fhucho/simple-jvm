@@ -4,6 +4,7 @@ package cz.simplejvm;
 import java.util.ArrayList;
 import java.util.List;
 
+import cz.simplejvm.ClassFile.CodeAttribute;
 import cz.simplejvm.ClassFile.Method;
 
 public class StackFrame {
@@ -51,9 +52,10 @@ public class StackFrame {
 	private final ClassFile classFileref;
 	private final Method methodRef;
 
-	public StackFrame(ClassFile classFile, Method method, int maxLocals, int maxStack) {
-		locals = new Value[maxLocals];
-		stack = new ArrayList<Value>(maxStack);
+	public StackFrame(ClassFile classFile, Method method) {
+		CodeAttribute codeAttr = method.getCodeAttribute();
+		locals = new Value[codeAttr.getMaxLocals()];
+		stack = new ArrayList<Value>(codeAttr.getMaxStack());
 		programCounter = 0;
 		classFileref = classFile;
 		methodRef = method;

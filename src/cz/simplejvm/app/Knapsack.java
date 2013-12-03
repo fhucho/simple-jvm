@@ -1,4 +1,4 @@
-package cz.simplejvm;
+package cz.simplejvm.app;
 
 public class Knapsack {
 	private final int maxWeight = 10;

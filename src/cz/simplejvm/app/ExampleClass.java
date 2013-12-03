@@ -6,15 +6,17 @@ public class ExampleClass {
 
 
 	public ExampleClass() {
-		a= 5456455;
+		a= 10000;
 	}
 
 
 
 
-	private void test2(int number) {
-		new NativeMethods().print(a+number+3);
+	public void addTest(int number) {
+		int result = a+number+3;
+		new NativeMethods().print(result);
 	}
+
 
 	public static void start() {
 		int a=3;
@@ -22,10 +24,10 @@ public class ExampleClass {
 		int c = a+b;
 		ExampleClass clazz = new ExampleClass();
 		new NativeMethods().print(c);
-		clazz.test2(c);
+		clazz.addTest(c);
 	}
 
-	public int testArray(int a) {
+	public int arrayTest1(int a) {
 
 		ExampleClass array[] =new ExampleClass[20];
 		for(int i=0; i<12; i++) {
@@ -35,7 +37,7 @@ public class ExampleClass {
 
 	}
 
-	public int testArray2() {
+	public int arrayTest2() {
 
 		ExampleClass array[] =new ExampleClass[20];
 		for(int i=0; i<12; i++) {
@@ -44,12 +46,5 @@ public class ExampleClass {
 		return 20;
 
 	}
-
-	public ExampleClass test() {
-		testArray(45);
-		return null;
-	}
-
-
 }
 

@@ -32,10 +32,10 @@ public class SuperClasses {
 			nm.print(22);
 		}
 
-		@Override
-		public void test() {
-			nm.print(2);
-		}
+		//		@Override
+		//		public void test() {
+		//			nm.print(2);
+		//		}
 	}
 
 }

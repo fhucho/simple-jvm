@@ -4,7 +4,6 @@ package cz.simplejvm;
 import java.util.ArrayList;
 import java.util.List;
 
-import cz.simplejvm.ClassFile.Method;
 import cz.simplejvm.ClassFile.MethodRefConstant;
 import cz.simplejvm.StackFrame.Value;
 import cz.simplejvm.app.NativeMethods;
@@ -39,7 +38,7 @@ public class NativeResolver {
 			return value;
 		}
 
-		public void invoke(Method method, StackFrame stackframe) {
+		public void invoke(MethodRefConstant method, StackFrame stackframe) {
 			int paramsCount = method.getParamsCount();
 			List<Value> params = new ArrayList<StackFrame.Value>();
 

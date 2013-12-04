@@ -83,8 +83,8 @@ public class Runtime {
 		while (!isFinished()) {
 			int instruction = getCurrInst();
 
-			System.out.print(sf().programCounter + " Instruction ");
-			System.out.println(String.format("%02X ", instruction));
+			// System.out.print(sf().programCounter + " Instruction ");
+			// System.out.println(String.format("%02X ", instruction));
 			executeCurrentInstruction(instruction);
 		}
 	}
@@ -174,8 +174,10 @@ public class Runtime {
 				return_();
 				break;
 			case Instructions.invokespecial:
-			case Instructions.invokevirtual:
 				invokeMethod();
+				break;
+			case Instructions.invokevirtual:
+				invokeVirtual();
 				break;
 			case Instructions.new_:
 				new_();
@@ -356,6 +358,20 @@ public class Runtime {
 		removeStackFrame();
 	}
 
+	private boolean checkForNative(MethodRefConstant method) {
+
+		NativeMethod nativeCheck = NativeResolver.checkForNative(method);
+		if (nativeCheck != null) {
+			nativeCheck.invoke(method, sf());
+			if (nativeCheck.hasResult()) {
+				sf().pushToStack(nativeCheck.getResult());
+			}
+			sf().programCounter++;
+			return true;
+		}
+		return false;
+	}
+
 	private void invokeMethod() {
 		int methodRefIndex = readInt();
 
@@ -363,11 +379,18 @@ public class Runtime {
 		ClassConstant clazz = method.getClazz();
 		NameAndTypeConstant name = method.getNameAndType();
 
+		// -------------handle native methods-------------
+		if (checkForNative(method)) {
+			return;
+		}
+		// --------------handle other methods---------------
+
 		System.out.println("Invoke method " + clazz.getName() + ": " + name.getName());
+
 		ClassFile newClassfile;
 		try {
 			newClassfile = ClassFileResolver.getInstance().getClassFile(clazz);
-		} catch (Exception e) {// skip
+		} catch (Exception e) {// skip library methods
 			e.printStackTrace();
 			sf().programCounter++;
 			return;
@@ -377,19 +400,6 @@ public class Runtime {
 		if (newMethod == null) {
 			throw new RuntimeException("Method " + name.getName() + " not found");
 		}
-
-		// -------------handle native methods-------------
-		NativeMethod nativeCheck = NativeResolver.checkForNative(method);
-		if (nativeCheck != null) {
-			nativeCheck.invoke(newMethod, sf());
-			if (nativeCheck.hasResult()) {
-				sf().pushToStack(nativeCheck.getResult());
-			}
-			sf().programCounter++;
-			return;
-		}
-
-		// --------------handle other methods---------------
 
 		int paramsCount = newMethod.getParamsCount();
 		StackFrame newStack = new StackFrame(newClassfile, newMethod);
@@ -402,45 +412,46 @@ public class Runtime {
 
 	}
 
-	private void invokeVirtual() {//TODO: load for runtime Class
+	private void invokeVirtual() {
 		int methodRefIndex = readInt();
 
 		MethodRefConstant method = (MethodRefConstant) cp()[methodRefIndex];
 		ClassConstant clazz = method.getClazz();
 		NameAndTypeConstant name = method.getNameAndType();
 
-		System.out.println("Invoke method " + clazz.getName() + ": " + name.getName());
-		ClassFile newClassfile;
-		try {
-			newClassfile = ClassFileResolver.getInstance().getClassFile(clazz);
-		} catch (Exception e) {// skip
-			e.printStackTrace();
-			sf().programCounter++;
-			return;
-		}
-
-		Method newMethod = newClassfile.getMethod(name.getName(), name.getDescriptor());
-		if (newMethod == null) {
-			throw new RuntimeException("Method " + name.getName() + " not found");
-		}
-
 		// -------------handle native methods-------------
-		NativeMethod nativeCheck = NativeResolver.checkForNative(method);
-		if (nativeCheck != null) {
-			nativeCheck.invoke(newMethod, sf());
-			if (nativeCheck.hasResult()) {
-				sf().pushToStack(nativeCheck.getResult());
-			}
-			sf().programCounter++;
+		if (checkForNative(method)) {
 			return;
 		}
-
 		// --------------handle other methods---------------
 
-		int paramsCount = newMethod.getParamsCount();
-		StackFrame newStack = new StackFrame(newClassfile, newMethod);
-		for (int i = paramsCount; i >= 0; i--) {// set local variables and new this reference
-			newStack.setLocal(i, sf().popFromStack());
+		List<Value> params = new ArrayList<StackFrame.Value>();// pop parameters from stack so we can get Object reference
+		int paramsCount = method.getParamsCount();
+		for (int i = 0; i <= paramsCount; i++) {
+			params.add(sf().popFromStack());
+		}
+
+		Reference objectRef = (Reference) params.get(paramsCount);
+		ObjectInstance instance = heap.getObject(objectRef);
+
+		// iterate through superclasses until we find the method
+		ClassFile classFile = instance.getClassFile();
+		Method newMethod;
+		while ((newMethod = classFile.getMethod(name.getName(), name.getDescriptor())) == null) {
+			try {
+				classFile = ClassFileResolver.getInstance().getClassFile(classFile.getSuperClass());
+			} catch (Exception e) {// skip library methods
+				System.err.println("Method " + name.getName() + " not found");
+				e.printStackTrace();
+				finish();
+				return;
+			}
+		}
+		System.out.println("Invoke virtual method " + classFile.getThisClass().getName() + ": " + name.getName());
+
+		StackFrame newStack = new StackFrame(classFile, newMethod);
+		for (int i = 0; i <= paramsCount; i++) {
+			newStack.setLocal(paramsCount - i, params.get(i));// set parameters
 		}
 
 		sf().programCounter++;
@@ -534,7 +545,7 @@ public class Runtime {
 	private void goto_() {
 		int pc = sf().programCounter;
 		short offset = readSignedShort();
-		//		System.out.println("Goto offset " + offset + ", pc = " + pc);
+		// System.out.println("Goto offset " + offset + ", pc = " + pc);
 		sf().programCounter = pc + offset;
 	}
 

@@ -60,6 +60,7 @@ public class Heap {
 		public Reference getReference() {
 			return reference;
 		}
+
 	}
 
 	public static class ObjectInstance extends Instance {
@@ -83,6 +84,9 @@ public class Heap {
 			FieldRefConstant fr = (FieldRefConstant) (classFile.getConstantPool()[field]);
 			String name = fr.getNameAndType().getName();
 			fields.put(name, value);
+		}
+		public ClassFile getClassFile() {
+			return classFile;
 		}
 	}
 

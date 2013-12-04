@@ -83,8 +83,8 @@ public class Runtime {
 		while (!isFinished()) {
 			int instruction = getCurrInst();
 
-			//			System.out.print(sf().programCounter + " Instruction ");
-			//			System.out.println(String.format("%02X ", instruction));
+			System.out.print(sf().programCounter + " Instruction ");
+			System.out.println(String.format("%02X ", instruction));
 			executeCurrentInstruction(instruction);
 		}
 	}
@@ -239,6 +239,9 @@ public class Runtime {
 			case Instructions.arraylength:
 				arraylength();
 				break;
+			case Instructions.aconst_null:
+				aconst_null();
+				break;
 
 			default:
 				throw new RuntimeException("Instruction not supported " + String.format("%02X ", instruction));
@@ -299,7 +302,7 @@ public class Runtime {
 		Reference objectref = (Reference) sf().popFromStack();
 
 		ObjectInstance instance = heap.getObject(objectref);
-		instance.putField(fieldRefIndex, value);
+		instance.putField(fieldRefIndex, value, cf());
 
 		sf().programCounter++;
 	}
@@ -308,8 +311,9 @@ public class Runtime {
 		int fieldRefIndex = readInt();
 		Reference objectref = (Reference) sf().popFromStack();
 
+		Constant[] cp = cp();
 		ObjectInstance instance = heap.getObject(objectref);
-		Value value = instance.getField(fieldRefIndex);
+		Value value = instance.getField(fieldRefIndex, cf());
 
 		sf().pushToStack(value);
 
@@ -359,6 +363,53 @@ public class Runtime {
 		ClassConstant clazz = method.getClazz();
 		NameAndTypeConstant name = method.getNameAndType();
 
+		System.out.println("Invoke method " + clazz.getName() + ": " + name.getName());
+		ClassFile newClassfile;
+		try {
+			newClassfile = ClassFileResolver.getInstance().getClassFile(clazz);
+		} catch (Exception e) {// skip
+			e.printStackTrace();
+			sf().programCounter++;
+			return;
+		}
+
+		Method newMethod = newClassfile.getMethod(name.getName(), name.getDescriptor());
+		if (newMethod == null) {
+			throw new RuntimeException("Method " + name.getName() + " not found");
+		}
+
+		// -------------handle native methods-------------
+		NativeMethod nativeCheck = NativeResolver.checkForNative(method);
+		if (nativeCheck != null) {
+			nativeCheck.invoke(newMethod, sf());
+			if (nativeCheck.hasResult()) {
+				sf().pushToStack(nativeCheck.getResult());
+			}
+			sf().programCounter++;
+			return;
+		}
+
+		// --------------handle other methods---------------
+
+		int paramsCount = newMethod.getParamsCount();
+		StackFrame newStack = new StackFrame(newClassfile, newMethod);
+		for (int i = paramsCount; i >= 0; i--) {// set local variables and new this reference
+			newStack.setLocal(i, sf().popFromStack());
+		}
+
+		sf().programCounter++;
+		addStackFrame(newStack);
+
+	}
+
+	private void invokeVirtual() {//TODO: load for runtime Class
+		int methodRefIndex = readInt();
+
+		MethodRefConstant method = (MethodRefConstant) cp()[methodRefIndex];
+		ClassConstant clazz = method.getClazz();
+		NameAndTypeConstant name = method.getNameAndType();
+
+		System.out.println("Invoke method " + clazz.getName() + ": " + name.getName());
 		ClassFile newClassfile;
 		try {
 			newClassfile = ClassFileResolver.getInstance().getClassFile(clazz);
@@ -563,6 +614,11 @@ public class Runtime {
 		} else {
 			sf().programCounter += 3;
 		}
+	}
+
+	private void aconst_null() {
+		sf().pushToStack(null);
+		sf().programCounter++;
 	}
 
 }

@@ -73,13 +73,13 @@ public class Heap {
 			}
 		}
 
-		public Value getField(int field) {
+		public Value getField(int field, ClassFile classFile) {
 			FieldRefConstant fr = (FieldRefConstant) (classFile.getConstantPool()[field]);
 			String name = fr.getNameAndType().getName();
 			return fields.get(name);
 		}
 
-		public void putField(int field, Value value) {
+		public void putField(int field, Value value, ClassFile classFile) {
 			FieldRefConstant fr = (FieldRefConstant) (classFile.getConstantPool()[field]);
 			String name = fr.getNameAndType().getName();
 			fields.put(name, value);

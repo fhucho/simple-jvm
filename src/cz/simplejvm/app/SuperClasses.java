@@ -13,14 +13,17 @@ public class SuperClasses {
 	}
 
 	private static class SuperSuperMain {
+		char[] string = {'t', 'e', 's', 't'};
+		char[] string2 = {'a', 'h', 'o', 'j'};
 
 		NativeMethods nm = new NativeMethods();
 
 		public SuperSuperMain() {
-			nm.print(11);
+			nm.println(11);
 		}
 		public void test() {
-			nm.print(11000);
+			nm.println(11000);
+			nm.println(string);
 		}
 
 	}
@@ -29,7 +32,7 @@ public class SuperClasses {
 	{
 
 		public SuperMain() {
-			nm.print(10);
+			nm.println(10);
 		}
 
 		//		@Override
@@ -43,12 +46,14 @@ public class SuperClasses {
 
 		public Main() {
 			super();
-			nm.print(9);
+			nm.println(9);
+			nm.println('c');
+			nm.println(string2);
 		}
 
 		@Override
 		public void test() {
-			nm.print(9000);
+			nm.println(9000);
 			super.test();
 		}
 

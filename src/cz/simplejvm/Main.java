@@ -7,7 +7,7 @@ import cz.simplejvm.app.SuperClasses;
 
 public class Main {
 	public static void main(String[] args) throws IOException {
-		ClassFile claz = ClassFileResolver.getInstance().getClassFile("cz/simplejvm/app/SuperClasses");
+		ClassFile claz = ClassFileResolver.getInstance().getClassFile("cz/simplejvm/app/NativeMethods");
 		System.out.println(claz.toString());
 
 		Runtime runtime = new Runtime();

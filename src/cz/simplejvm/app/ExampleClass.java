@@ -1,7 +1,7 @@
 package cz.simplejvm.app;
 
 
-public class ExampleClass {
+public class ExampleClass extends Object{
 	int a;
 	NativeMethods nativeMethods = new NativeMethods();
 

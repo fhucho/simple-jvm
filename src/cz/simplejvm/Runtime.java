@@ -231,6 +231,7 @@ public class Runtime {
 				break;
 			case Instructions.iastore:
 			case Instructions.bastore:
+			case Instructions.castore:
 				iastore();
 				break;
 
@@ -362,7 +363,8 @@ public class Runtime {
 
 		NativeMethod nativeCheck = NativeResolver.checkForNative(method);
 		if (nativeCheck != null) {
-			nativeCheck.invoke(method, sf());
+			System.out.println("Invoke native method " + method.getClazz().getName() + ": " + method.getNameAndType().getName());
+			nativeCheck.invoke(method, sf(), heap);
 			if (nativeCheck.hasResult()) {
 				sf().pushToStack(nativeCheck.getResult());
 			}
@@ -400,8 +402,10 @@ public class Runtime {
 				classFile = ClassFileResolver.getInstance().getClassFile(classFile.getSuperClass());
 			}
 		} catch (Exception e) {// skip library methods
-			System.err.println("Method " + name.getName() + " not found");
-			e.printStackTrace();
+			if (!name.getName().equals("<init>") || !e.getMessage().contains("java/lang/Object")) {
+				System.err.println("Method " + name.getName() + " not found");
+				e.printStackTrace();
+			}
 			sf().programCounter++;
 			return;
 		}

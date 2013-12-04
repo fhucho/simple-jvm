@@ -174,7 +174,7 @@ public class Runtime {
 				return_();
 				break;
 			case Instructions.invokespecial:
-				invokeMethod();
+				invokeSpecial();
 				break;
 			case Instructions.invokevirtual:
 				invokeVirtual();
@@ -372,7 +372,7 @@ public class Runtime {
 		return false;
 	}
 
-	private void invokeMethod() {
+	private void invokeSpecial() {
 		int methodRefIndex = readInt();
 
 		MethodRefConstant method = (MethodRefConstant) cp()[methodRefIndex];
@@ -385,26 +385,31 @@ public class Runtime {
 		}
 		// --------------handle other methods---------------
 
-		System.out.println("Invoke method " + clazz.getName() + ": " + name.getName());
+		List<Value> params = new ArrayList<StackFrame.Value>();// pop parameters from stack so we can get Object reference
+		int paramsCount = method.getParamsCount();
+		for (int i = 0; i <= paramsCount; i++) {
+			params.add(sf().popFromStack());
+		}
 
-		ClassFile newClassfile;
+		// iterate through superclasses until we find the method
+		ClassFile classFile;
+		Method newMethod;
 		try {
-			newClassfile = ClassFileResolver.getInstance().getClassFile(clazz);
+			classFile = ClassFileResolver.getInstance().getClassFile(clazz);
+			while ((newMethod = classFile.getMethod(name.getName(), name.getDescriptor())) == null) {
+				classFile = ClassFileResolver.getInstance().getClassFile(classFile.getSuperClass());
+			}
 		} catch (Exception e) {// skip library methods
+			System.err.println("Method " + name.getName() + " not found");
 			e.printStackTrace();
 			sf().programCounter++;
 			return;
 		}
+		System.out.println("Invoke special method " + classFile.getThisClass().getName() + ": " + name.getName());
 
-		Method newMethod = newClassfile.getMethod(name.getName(), name.getDescriptor());
-		if (newMethod == null) {
-			throw new RuntimeException("Method " + name.getName() + " not found");
-		}
-
-		int paramsCount = newMethod.getParamsCount();
-		StackFrame newStack = new StackFrame(newClassfile, newMethod);
-		for (int i = paramsCount; i >= 0; i--) {// set local variables and new this reference
-			newStack.setLocal(i, sf().popFromStack());
+		StackFrame newStack = new StackFrame(classFile, newMethod);
+		for (int i = 0; i <= paramsCount; i++) {
+			newStack.setLocal(paramsCount - i, params.get(i));// set parameters
 		}
 
 		sf().programCounter++;
@@ -416,7 +421,6 @@ public class Runtime {
 		int methodRefIndex = readInt();
 
 		MethodRefConstant method = (MethodRefConstant) cp()[methodRefIndex];
-		ClassConstant clazz = method.getClazz();
 		NameAndTypeConstant name = method.getNameAndType();
 
 		// -------------handle native methods-------------
@@ -440,7 +444,7 @@ public class Runtime {
 		while ((newMethod = classFile.getMethod(name.getName(), name.getDescriptor())) == null) {
 			try {
 				classFile = ClassFileResolver.getInstance().getClassFile(classFile.getSuperClass());
-			} catch (Exception e) {// skip library methods
+			} catch (Exception e) {// method not found
 				System.err.println("Method " + name.getName() + " not found");
 				e.printStackTrace();
 				finish();

@@ -12,16 +12,30 @@ public class SuperClasses {
 		new Main().test();
 	}
 
-	private static class SuperMain {
+	private static class SuperSuperMain {
 
 		NativeMethods nm = new NativeMethods();
 
-		public SuperMain() {
+		public SuperSuperMain() {
 			nm.print(11);
 		}
 		public void test() {
-			nm.print(1);
+			nm.print(11000);
 		}
+
+	}
+
+	private static class SuperMain  extends SuperSuperMain
+	{
+
+		public SuperMain() {
+			nm.print(10);
+		}
+
+		//		@Override
+		//		public void test() {
+		//			nm.print(10000);
+		//		}
 
 	}
 
@@ -29,7 +43,13 @@ public class SuperClasses {
 
 		public Main() {
 			super();
-			nm.print(22);
+			nm.print(9);
+		}
+
+		@Override
+		public void test() {
+			nm.print(9000);
+			super.test();
 		}
 
 		//		@Override

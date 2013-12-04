@@ -10,13 +10,12 @@ public class Main {
 		ClassFile claz = ClassFileResolver.getInstance().getClassFile("cz/simplejvm/app/SuperClasses");
 		System.out.println(claz.toString());
 
-
-
 		Runtime runtime = new Runtime();
-		//		runtime.start("cz/simplejvm/app/Knapsack", "start", "()V");
+		// runtime.start("cz/simplejvm/app/Knapsack", "start", "()V");
 		runtime.start("cz/simplejvm/app/SuperClasses", "start", "()V");
 
-		//		Knapsack.start();
+		System.out.println("--------------------");
+		// Knapsack.start();
 		SuperClasses.start();
 	}
 }

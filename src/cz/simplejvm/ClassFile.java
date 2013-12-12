@@ -1,4 +1,3 @@
-
 package cz.simplejvm;
 
 import java.util.regex.Matcher;
@@ -16,8 +15,9 @@ public class ClassFile {
 	private final Method[] methods;
 	private final Attribute[] attributes;
 
-	public ClassFile(int minorNumber, int majorNumber, int accessFlags, ClassConstant thisClass, ClassConstant superClass, ClassConstant[] interfaces, Constant[] constantPool, Field[] fields,
-			Method[] methods, Attribute[] attributes) {
+	public ClassFile(int minorNumber, int majorNumber, int accessFlags,
+			ClassConstant thisClass, ClassConstant superClass, ClassConstant[] interfaces,
+			Constant[] constantPool, Field[] fields, Method[] methods, Attribute[] attributes) {
 		this.minorNumber = minorNumber;
 		this.majorNumber = majorNumber;
 		this.accessFlags = accessFlags;
@@ -60,7 +60,8 @@ public class ClassFile {
 
 	public Method getMethod(String methodName, String methodDesc) {
 		for (Method method : methods) {
-			if (method.getName().equals(methodName) && method.getDescriptor().equals(methodDesc)) {
+			if (method.getName().equals(methodName)
+					&& method.getDescriptor().equals(methodDesc)) {
 				return method;
 			}
 		}
@@ -116,7 +117,8 @@ public class ClassFile {
 		private String descriptor;
 		private String name;
 
-		public Member(int accessFlags, int nameIndex, int descriptorIndex, Attribute[] attributes) {
+		public Member(int accessFlags, int nameIndex, int descriptorIndex,
+				Attribute[] attributes) {
 			this.accessFlags = accessFlags;
 			this.nameIndex = nameIndex;
 			this.descriptorIndex = descriptorIndex;
@@ -133,7 +135,8 @@ public class ClassFile {
 			NameAndTypeConstant nameType = new NameAndTypeConstant(nameIndex, descriptorIndex);
 			nameType.link(constantPool);
 
-			String rtrn = getClass().getSimpleName() + "-" + nameType.name +"-"+ nameType.descriptor + "\n";
+			String rtrn = getClass().getSimpleName() + "-" + nameType.name + "-"
+					+ nameType.descriptor + "\n";
 			for (Attribute attr : attributes) {
 				rtrn += "attr: " + attr + "\n";
 			}
@@ -159,7 +162,8 @@ public class ClassFile {
 	}
 
 	public static class Field extends Member {
-		public Field(int accessFlags, int nameIndex, int descriptorIndex, Attribute[] attributes) {
+		public Field(int accessFlags, int nameIndex, int descriptorIndex,
+				Attribute[] attributes) {
 			super(accessFlags, nameIndex, descriptorIndex, attributes);
 		}
 	}
@@ -167,11 +171,13 @@ public class ClassFile {
 	public static class Method extends Member {
 
 		private static Pattern allParamsPattern = Pattern.compile("(\\(.*?\\))");
-		private static Pattern paramsPattern = Pattern.compile("(\\[?)(C|Z|S|I|J|F|D|(:?L[^;]+;))");
+		private static Pattern paramsPattern = Pattern
+				.compile("(\\[?)(C|Z|S|I|J|F|D|(:?L[^;]+;))");
 
 		private Integer numberOfParameters;
 
-		public Method(int accessFlags, int nameIndex, int descriptorIndex, Attribute[] attributes) {
+		public Method(int accessFlags, int nameIndex, int descriptorIndex,
+				Attribute[] attributes) {
 			super(accessFlags, nameIndex, descriptorIndex, attributes);
 		}
 
@@ -199,7 +205,8 @@ public class ClassFile {
 		private int calculateParamCount(String methodRefType) {
 			Matcher m = allParamsPattern.matcher(methodRefType);
 			if (!m.find()) {
-				throw new IllegalArgumentException("Method signature does not contain parameters");
+				throw new IllegalArgumentException(
+						"Method signature does not contain parameters");
 			}
 			String paramsDescriptor = m.group(1);
 			Matcher mParam = paramsPattern.matcher(paramsDescriptor);
@@ -234,25 +241,17 @@ public class ClassFile {
 			this.attributes = attributes;
 		}
 
-
-
 		public int getMaxStack() {
 			return maxStack;
 		}
-
-
 
 		public int getMaxLocals() {
 			return maxLocals;
 		}
 
-
-
 		public int[] getCode() {
 			return code;
 		}
-
-
 
 		@Override
 		public String toString() {

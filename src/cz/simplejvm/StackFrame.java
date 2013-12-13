@@ -1,8 +1,10 @@
-
 package cz.simplejvm;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import cz.simplejvm.ClassFile.CodeAttribute;
 import cz.simplejvm.ClassFile.Method;
@@ -32,6 +34,18 @@ public class StackFrame {
 
 		public Reference(Reference src) {
 			super(src);
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (!(obj instanceof Reference)) return false;
+			Reference ref = (Reference) obj;
+			return ref.value == value;
+		}
+
+		@Override
+		public int hashCode() {
+			return new Integer(value).hashCode();
 		}
 	}
 
@@ -69,6 +83,17 @@ public class StackFrame {
 		return methodRef;
 	}
 
+	public Set<Reference> getGcRoots() {
+		Set<Reference> references = new HashSet<Reference>();
+		for (Value v : stack) {
+			if (v instanceof Reference) references.add((Reference) v);
+		}
+		for (Value v : locals) {
+			if (v instanceof Reference) references.add((Reference) v);
+		}
+		return references;
+	}
+
 	public Value popFromStack() {
 		return stack.remove(stack.size() - 1);
 	}
@@ -83,6 +108,22 @@ public class StackFrame {
 
 	public Value getLocal(int index) {
 		return locals[index];
+	}
+
+	public void updateReferences(Map<Reference, Reference> refMap) {
+		for (int i = 0; i < locals.length; i++) {
+			if (locals[i] instanceof Reference) {
+				Reference ref = (Reference) locals[i];
+				locals[i] = refMap.get(ref);
+			}
+		}
+
+		for (int i = 0; i < stack.size(); i++) {
+			if (stack.get(i) instanceof Reference) {
+				Reference ref = (Reference) stack.get(i);
+				stack.set(i, refMap.get(ref));
+			}
+		}
 	}
 
 }

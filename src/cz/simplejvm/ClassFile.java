@@ -4,6 +4,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ClassFile {
+	private static Pattern allParamsPattern = Pattern.compile("(\\(.*?\\))");
+	private static Pattern paramsPattern = Pattern.compile("(\\[?)(C|Z|S|I|J|F|D|(:?L[^;]+;))");
+
+
 	private final int minorNumber;
 	private final int majorNumber;
 	private final int accessFlags;
@@ -97,6 +101,21 @@ public class ClassFile {
 		for (Method method : methods) {
 			method.link(constantPool);
 		}
+	}
+
+	public static int calculateParamCount(String methodDescriptor) {
+		Matcher m = allParamsPattern.matcher(methodDescriptor);
+		if (!m.find()) {
+			throw new IllegalArgumentException("Method signature does not contain parameters");
+		}
+		String paramsDescriptor = m.group(1);
+		Matcher mParam = paramsPattern.matcher(paramsDescriptor);
+
+		int count = 0;
+		while (mParam.find()) {
+			count++;
+		}
+		return count;
 	}
 
 	@Override
@@ -328,6 +347,15 @@ public class ClassFile {
 	public static class MethodRefConstant extends RefConstant {
 		public MethodRefConstant(int classIndex, int nameAndTypeIndex) {
 			super(classIndex, nameAndTypeIndex);
+		}
+
+		private Integer numberOfParameters;
+
+		public int getParamsCount() {
+			if (numberOfParameters == null) {
+				numberOfParameters = calculateParamCount(getNameAndType().getDescriptor());
+			}
+			return numberOfParameters;
 		}
 	}
 

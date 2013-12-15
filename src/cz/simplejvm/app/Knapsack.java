@@ -14,7 +14,6 @@ public class Knapsack {
 	}
 
 	public int priceOfConfig(boolean[] config) {
-		//		new NativeMethods().print(2222);
 		int price = 0;
 		int weight = 0;
 		for (int i = 0; i < config.length; i++) {
@@ -27,27 +26,33 @@ public class Knapsack {
 	}
 
 	public void copyConfig(boolean[] src, boolean[] dst) {
-		//		new NativeMethods().print(3333);
 		for (int i = 0; i < src.length; i++) {
 			dst[i] = src[i];
 		}
 	}
 
+	private void printConfig(boolean[] config) {
+		for(int i=0; i<config.length; i++) {
+			boolean value =config[i];
+			new NativeMethods().print(value?1:0);
+		}
+		new NativeMethods().println(' ');
+	}
+
 	public boolean[] solve() {
-		boolean[] config = new boolean[5];
-		boolean[] bestConfig = new boolean[5];
-		//		new NativeMethods().print(111);
+		boolean[] config = new boolean[weights.length];
+		boolean[] bestConfig = new boolean[weights.length];
 		solve(0, config, bestConfig, 0);
 		return bestConfig;
 	}
 
 	public int solve(int index, boolean[] config, boolean[] bestConfig, int bestPrice) {
 		//		new NativeMethods().print(000004544);
+
 		if (index == weights.length) {
-			//			new NativeMethods().print(11111);
 			int price = priceOfConfig(config);
 			if (price > bestPrice) {
-				price = priceOfConfig(config);
+				bestPrice=price;
 				copyConfig(config, bestConfig);
 			}
 			return bestPrice;
@@ -60,10 +65,9 @@ public class Knapsack {
 			}
 
 			config[index] = true;
-			solve(index + 1, config, bestConfig, bestPrice);
 			int price2 = solve(index + 1, config, bestConfig, bestPrice);
 			if (price2 > bestPrice) {
-				bestPrice = price1;
+				bestPrice = price2;
 			}
 
 			return bestPrice;
@@ -80,8 +84,8 @@ public class Knapsack {
 		int[] prices = new int[n];
 		int[] weights = new int[n];
 		for(int i=0; i<n; i++) {
-			prices[i] = numbers[i+2];
-			weights[i] = numbers[n+i+2];
+			weights[i] = numbers[i+2];
+			prices[i] = numbers[n+i+2];
 		}
 
 		nm.println(maxWeight);
@@ -90,9 +94,21 @@ public class Knapsack {
 
 		nm.println('-');
 
-		boolean[] config = new Knapsack(maxWeight, prices, weights).solve();
-		for(boolean value: config) {
+		int totalCost=0;
+		int totalWeight=0;
+
+		Knapsack kn = new Knapsack(maxWeight, prices, weights);
+		boolean[] config = kn.solve();
+		for(int i=0; i<config.length; i++) {
+			boolean value =config[i];
+			if(value) {
+				totalCost+=prices[i];
+				totalWeight+=weights[i];
+			}
 			nm.print(value?1:0);
 		}
+		nm.println('*');
+		nm.println(totalCost);
+		nm.println(totalWeight);
 	}
 }

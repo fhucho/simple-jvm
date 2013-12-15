@@ -49,6 +49,10 @@ public class NativeResolver {
 			return new WriteToFileMethod();
 		}
 
+		if (method.getNameAndType().getName().equals("stringToIntArray")) {
+			return new StringToIntArrayMethod();
+		}
+
 		return null;
 	}
 
@@ -166,6 +170,28 @@ public class NativeResolver {
 		}
 
 	}
+
+	public static class StringToIntArrayMethod extends NativeMethod {
+
+		@Override
+		protected void run(List<Value> params, Heap heap) {
+			PrimitiveArrayInstance arrayRef = heap.getPrimitiveArray((Reference) params.get(0));
+			char[] text = new char[arrayRef.getLength()];
+			for (int i = 0; i < arrayRef.getLength(); i++) {
+				text[i] = (char) arrayRef.getItem(i).value;
+			}
+
+
+			int[] numbers = new NativeMethods().stringToIntArray(text);
+			PrimitiveArrayInstance newArray = heap.newArray(10, numbers.length);
+			for (int i = 0; i < numbers.length; i++) {
+				newArray.setItem(i, new Int(numbers[i]));
+			}
+			setValue(newArray.getReference());
+		}
+
+	}
+
 
 	public static class WriteToFileMethod extends NativeMethod {
 

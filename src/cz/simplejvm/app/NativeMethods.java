@@ -5,6 +5,8 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 public class NativeMethods {
 	public void testNative() {
@@ -57,6 +59,25 @@ public class NativeMethods {
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	public int[] stringToIntArray(char[] string) {
+		String s = new String(string);
+		String[] parts = s.replaceAll("\\s+", " ").split(" ");
+		List<Integer> ints = new ArrayList<Integer>();
+		for (String part : parts) {
+			try {
+				ints.add(Integer.parseInt(part));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
+		int[] result = new int[ints.size()];
+		for (int i = 0; i < ints.size(); i++) {
+			result[i] = ints.get(i);
+		}
+		return result;
 	}
 
 	public void writeToFile(char[] filename, char[] text) {

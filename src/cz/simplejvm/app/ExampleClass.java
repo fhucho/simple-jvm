@@ -26,9 +26,18 @@ public class ExampleClass extends Object {
 			i++;
 			DataHolder tmp = new DataHolder(fname);
 		}
-		new NativeMethods().writeToFile(new char[] {
+		nativeMethods.writeToFile(new char[] {
 				'o', 'u', 't'
 		}, data.data);
+
+	}
+
+	void testInput() {
+		char[] inputText = nativeMethods.readFromFile(new char[] {'k', 'n', 'a', 'p', 'I', 'n'});
+		int[] numbers = nativeMethods.stringToIntArray(inputText);
+		for(int number: numbers) {
+			nativeMethods.println(number);
+		}
 
 	}
 
@@ -36,7 +45,9 @@ public class ExampleClass extends Object {
 
 
 	public static void start() {
-		new ExampleClass().testGc();
+		ExampleClass exampleClass = new ExampleClass();
+		exampleClass.testGc();
+		exampleClass.testInput();
 	}
 
 	public int arrayTest1(int a) {

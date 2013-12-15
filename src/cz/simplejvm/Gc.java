@@ -16,6 +16,9 @@ public class Gc {
 	}
 
 	public static void gc(Heap heap, List<StackFrame> stackFrames) {
+		//		if(1==1) {
+		//			return;
+		//		}
 		// Mark GC roots as gray.
 		Set<Reference> graySet = new HashSet<Reference>();
 		for (StackFrame sf : stackFrames) {

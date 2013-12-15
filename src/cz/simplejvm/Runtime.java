@@ -387,7 +387,6 @@ public class Runtime {
 	}
 
 	private void invokeSpecial() {
-		Gc.gc(heap, stackFrames);
 		int methodRefIndex = readInt();
 
 		MethodRefConstant method = (MethodRefConstant) cp()[methodRefIndex];
@@ -431,6 +430,7 @@ public class Runtime {
 
 		sf().programCounter++;
 		addStackFrame(newStack);
+
 
 	}
 
@@ -482,6 +482,7 @@ public class Runtime {
 	}
 
 	private void new_() {
+		Gc.gc(heap, stackFrames);
 		int classIndex = readInt();
 		ClassConstant clazz = (ClassConstant) cp()[classIndex];
 		ClassFile newClassfile = ClassFileResolver.getInstance().getClassFile(clazz.getName());
@@ -492,6 +493,7 @@ public class Runtime {
 	}
 
 	private void newarray() {
+		Gc.gc(heap, stackFrames);
 		sf().programCounter++;
 		int type = getCurrInst();
 		Int size = (Int) sf().popFromStack();

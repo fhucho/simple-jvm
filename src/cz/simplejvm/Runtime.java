@@ -375,6 +375,7 @@ public class Runtime {
 	}
 
 	private void invokeSpecial() {
+		Gc.gc(heap, stackFrames);
 		int methodRefIndex = readInt();
 
 		MethodRefConstant method = (MethodRefConstant) cp()[methodRefIndex];
@@ -422,6 +423,7 @@ public class Runtime {
 	}
 
 	private void invokeVirtual() {
+		Gc.gc(heap, stackFrames);
 		int methodRefIndex = readInt();
 
 		MethodRefConstant method = (MethodRefConstant) cp()[methodRefIndex];

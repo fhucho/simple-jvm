@@ -1,3 +1,4 @@
+
 package cz.simplejvm;
 
 import java.util.ArrayList;
@@ -5,8 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
-
 import cz.simplejvm.ClassFile.Field;
 import cz.simplejvm.ClassFile.FieldRefConstant;
 import cz.simplejvm.StackFrame.Int;
@@ -59,7 +58,7 @@ public class Heap {
 
 	public void updateReferences(Map<Reference, Reference> refMap) {
 		for (HeapObject obj : objects) {
-
+			obj.updateReferences(refMap);
 		}
 	}
 
@@ -82,7 +81,7 @@ public class Heap {
 		public Reference getReference() {
 			return reference;
 		}
-		
+
 		public void grayAllWhiteReferences(Heap heap, Set<Reference> graySet) {
 		}
 

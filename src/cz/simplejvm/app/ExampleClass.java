@@ -28,7 +28,7 @@ public class ExampleClass extends Object{
 	}
 
 
-	public static void start() {
+	public static void start2() {
 		int step=3;
 		int size=10;
 		int c=0;
@@ -41,6 +41,12 @@ public class ExampleClass extends Object{
 		new NativeMethods().print(c);
 		clazz.addTest(c);
 		clazz.testBoolean();
+	}
+
+	public static void start() {
+		char[] fname = {'i', 'n', 'p', 'u', 't', '.', 't', 'x', 't'};
+		char[] text = new NativeMethods().readFromFile(fname);
+		new NativeMethods().print(text);
 	}
 
 	public int arrayTest1(int a) {

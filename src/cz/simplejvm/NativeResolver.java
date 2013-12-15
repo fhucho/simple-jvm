@@ -6,6 +6,7 @@ import java.util.List;
 
 import cz.simplejvm.ClassFile.MethodRefConstant;
 import cz.simplejvm.Heap.PrimitiveArrayInstance;
+import cz.simplejvm.StackFrame.Int;
 import cz.simplejvm.StackFrame.Reference;
 import cz.simplejvm.StackFrame.Value;
 import cz.simplejvm.app.NativeMethods;
@@ -38,6 +39,10 @@ public class NativeResolver {
 
 		if (method.getNameAndType().getName().equals("println") && method.getNameAndType().getDescriptor().equals("([C)V")) {
 			return new PrintlncaMethod();
+		}
+
+		if (method.getNameAndType().getName().equals("readFromFile")) {
+			return new ReadFromFileMethod();
 		}
 
 		return null;
@@ -77,7 +82,7 @@ public class NativeResolver {
 	public static class PrintMethod extends NativeMethod {
 
 		@Override
-		protected void run(List<Value> params,Heap heap) {
+		protected void run(List<Value> params, Heap heap) {
 			new NativeMethods().print(params.get(0).value);
 		}
 
@@ -96,7 +101,7 @@ public class NativeResolver {
 
 		@Override
 		protected void run(List<Value> params, Heap heap) {
-			new NativeMethods().print((char)params.get(0).value);
+			new NativeMethods().print((char) params.get(0).value);
 		}
 
 	}
@@ -105,7 +110,7 @@ public class NativeResolver {
 
 		@Override
 		protected void run(List<Value> params, Heap heap) {
-			new NativeMethods().println((char)params.get(0).value);
+			new NativeMethods().println((char) params.get(0).value);
 		}
 
 	}
@@ -116,7 +121,7 @@ public class NativeResolver {
 		protected void run(List<Value> params, Heap heap) {
 			PrimitiveArrayInstance arrayRef = heap.getPrimitiveArray((Reference) params.get(0));
 			char[] array = new char[arrayRef.getLength()];
-			for(int i=0; i< arrayRef.getLength(); i++) {
+			for (int i = 0; i < arrayRef.getLength(); i++) {
 				array[i] = (char) arrayRef.getItem(i).value;
 			}
 			new NativeMethods().print(array);
@@ -130,10 +135,30 @@ public class NativeResolver {
 		protected void run(List<Value> params, Heap heap) {
 			PrimitiveArrayInstance arrayRef = heap.getPrimitiveArray((Reference) params.get(0));
 			char[] array = new char[arrayRef.getLength()];
-			for(int i=0; i< arrayRef.getLength(); i++) {
+			for (int i = 0; i < arrayRef.getLength(); i++) {
 				array[i] = (char) arrayRef.getItem(i).value;
 			}
 			new NativeMethods().println(array);
+		}
+
+	}
+
+	public static class ReadFromFileMethod extends NativeMethod {
+
+		@Override
+		protected void run(List<Value> params, Heap heap) {
+			PrimitiveArrayInstance arrayRef = heap.getPrimitiveArray((Reference) params.get(0));
+			char[] fname = new char[arrayRef.getLength()];
+			for (int i = 0; i < arrayRef.getLength(); i++) {
+				fname[i] = (char) arrayRef.getItem(i).value;
+			}
+			char[] text = new NativeMethods().readFromFile(fname);
+			PrimitiveArrayInstance newArray = heap.newArray(5, text.length);
+			for (int i = 0; i < text.length; i++) {
+				newArray.setItem(i, new Int(text[i]));
+			}
+
+			setValue(newArray.getReference());
 		}
 
 	}

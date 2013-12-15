@@ -22,7 +22,7 @@ public class Gc {
 			graySet.addAll(sf.getGcRoots());
 		}
 		for (Reference ref : graySet) {
-			heap.getNormalObject(ref).setColor(Color.GRAY);
+			heap.getObject(ref).setColor(Color.GRAY);
 		}
 
 		// Process gray objects.

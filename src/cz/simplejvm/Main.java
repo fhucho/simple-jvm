@@ -3,8 +3,6 @@ package cz.simplejvm;
 
 import java.io.IOException;
 
-import cz.simplejvm.app.Knapsack;
-
 public class Main {
 	public static void main(String[] args) throws IOException {
 		ClassFile claz = ClassFileResolver.getInstance().getClassFile("cz/simplejvm/app/ExampleClass");
@@ -15,7 +13,7 @@ public class Main {
 		//		runtime.start("cz/simplejvm/app/ExampleClass", "start", "()V");
 
 		System.out.println("--------------------");
-		Knapsack.start();
+		//		Knapsack.start();
 		//		ExampleClass.start();
 	}
 }

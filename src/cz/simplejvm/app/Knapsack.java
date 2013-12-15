@@ -77,6 +77,7 @@ public class Knapsack {
 	public static void start() {
 		NativeMethods nm = new NativeMethods();
 		char[] inputFname  = {'k', 'n', 'a', 'p', 'I', 'n'};
+		char[] outputFname  = {'k', 'n', 'a', 'p', 'O', 'u', 't'};
 		char[] inputText = nm.readFromFile(inputFname);
 		int[] numbers = nm.stringToIntArray(inputText);
 		int n = numbers[0];
@@ -89,8 +90,11 @@ public class Knapsack {
 		}
 
 		nm.println(maxWeight);
-		nm.println(prices);
+		nm.print('w');
 		nm.println(weights);
+		nm.print('c');
+		nm.println(prices);
+
 
 		nm.println('-');
 
@@ -99,16 +103,22 @@ public class Knapsack {
 
 		Knapsack kn = new Knapsack(maxWeight, prices, weights);
 		boolean[] config = kn.solve();
+		char[] configToPrint = new char[config.length];
 		for(int i=0; i<config.length; i++) {
 			boolean value =config[i];
 			if(value) {
 				totalCost+=prices[i];
 				totalWeight+=weights[i];
 			}
-			nm.print(value?1:0);
+			configToPrint[i]=value?'1':'0';
 		}
-		nm.println('*');
+
+
+		nm.writeToFile(outputFname, configToPrint);
+		nm.println(configToPrint);
+		nm.print('c');
 		nm.println(totalCost);
+		nm.print('w');
 		nm.println(totalWeight);
 	}
 }

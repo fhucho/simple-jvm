@@ -4,6 +4,7 @@ package cz.simplejvm.app;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 public class NativeMethods {
 	public void testNative() {
@@ -56,6 +57,16 @@ public class NativeMethods {
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	public void writeToFile(char[] filename, char[] text) {
+		try {
+			PrintWriter writer = new PrintWriter(new String(filename), "UTF-8");
+			writer.print(text);
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 }

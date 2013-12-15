@@ -46,7 +46,8 @@ public class ExampleClass extends Object{
 	public static void start() {
 		char[] fname = {'i', 'n', 'p', 'u', 't', '.', 't', 'x', 't'};
 		char[] text = new NativeMethods().readFromFile(fname);
-		new NativeMethods().print(text);
+		new NativeMethods().writeToFile(new char[]{'o',  'u', 't'}, text);
+
 	}
 
 	public int arrayTest1(int a) {

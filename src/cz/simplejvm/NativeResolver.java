@@ -45,6 +45,10 @@ public class NativeResolver {
 			return new ReadFromFileMethod();
 		}
 
+		if (method.getNameAndType().getName().equals("writeToFile")) {
+			return new WriteToFileMethod();
+		}
+
 		return null;
 	}
 
@@ -159,6 +163,27 @@ public class NativeResolver {
 			}
 
 			setValue(newArray.getReference());
+		}
+
+	}
+
+	public static class WriteToFileMethod extends NativeMethod {
+
+		@Override
+		protected void run(List<Value> params, Heap heap) {
+			PrimitiveArrayInstance arrayRef = heap.getPrimitiveArray((Reference) params.get(1));
+			char[] fname = new char[arrayRef.getLength()];
+			for (int i = 0; i < arrayRef.getLength(); i++) {
+				fname[i] = (char) arrayRef.getItem(i).value;
+			}
+
+			arrayRef = heap.getPrimitiveArray((Reference) params.get(0));
+			char[] text = new char[arrayRef.getLength()];
+			for (int i = 0; i < arrayRef.getLength(); i++) {
+				text[i] = (char) arrayRef.getItem(i).value;
+			}
+
+			new NativeMethods().writeToFile(fname, text);
 		}
 
 	}

@@ -229,6 +229,18 @@ public class Runtime {
 			case Instructions.ifeq:
 				ifeq();
 				break;
+			case Instructions.ifgt:
+				ifgt();
+				break;
+			case Instructions.ifge:
+				ifge();
+				break;
+			case Instructions.iflt:
+				iflt();
+				break;
+			case Instructions.ifle:
+				ifle();
+				break;
 			case Instructions.iastore:
 			case Instructions.bastore:
 			case Instructions.castore:
@@ -628,9 +640,46 @@ public class Runtime {
 		}
 	}
 
+
 	private void ifeq() {
 		Int value = (Int) sf().popFromStack();
 		if (value.value == 0) {
+			goto_();
+		} else {
+			sf().programCounter += 3;
+		}
+	}
+
+	private void ifgt() {
+		Int value = (Int) sf().popFromStack();
+		if (value.value > 0) {
+			goto_();
+		} else {
+			sf().programCounter += 3;
+		}
+	}
+
+	private void ifge() {
+		Int value = (Int) sf().popFromStack();
+		if (value.value >= 0) {
+			goto_();
+		} else {
+			sf().programCounter += 3;
+		}
+	}
+
+	private void iflt() {
+		Int value = (Int) sf().popFromStack();
+		if (value.value < 0) {
+			goto_();
+		} else {
+			sf().programCounter += 3;
+		}
+	}
+
+	private void ifle() {
+		Int value = (Int) sf().popFromStack();
+		if (value.value <= 0) {
 			goto_();
 		} else {
 			sf().programCounter += 3;

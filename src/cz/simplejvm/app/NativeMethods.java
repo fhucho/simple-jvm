@@ -37,6 +37,14 @@ public class NativeMethods {
 		System.out.print(c);
 	}
 
+	public void println(int[] numbers) {
+		for(int number: numbers) {
+			System.out.print(number+" ");
+		}
+		System.out.println("");
+
+	}
+
 	public char[] readFromFile(char[] filename) {
 		try {
 

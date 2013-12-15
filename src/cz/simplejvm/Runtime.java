@@ -375,7 +375,7 @@ public class Runtime {
 
 		NativeMethod nativeCheck = NativeResolver.checkForNative(method);
 		if (nativeCheck != null) {
-			System.out.println("Invoke native method " + method.getClazz().getName() + ": " + method.getNameAndType().getName());
+			//			System.out.println("Invoke native method " + method.getClazz().getName() + ": " + method.getNameAndType().getName());
 			nativeCheck.invoke(method, sf(), heap);
 			if (nativeCheck.hasResult()) {
 				sf().pushToStack(nativeCheck.getResult());
@@ -421,7 +421,7 @@ public class Runtime {
 			sf().programCounter++;
 			return;
 		}
-		System.out.println("Invoke special method " + classFile.getThisClass().getName() + ": " + name.getName());
+		//		System.out.println("Invoke special method " + classFile.getThisClass().getName() + ": " + name.getName());
 
 		StackFrame newStack = new StackFrame(classFile, newMethod);
 		for (int i = 0; i <= paramsCount; i++) {
@@ -469,7 +469,7 @@ public class Runtime {
 				return;
 			}
 		}
-		System.out.println("Invoke virtual method " + classFile.getThisClass().getName() + ": " + name.getName());
+		//		System.out.println("Invoke virtual method " + classFile.getThisClass().getName() + ": " + name.getName());
 
 		StackFrame newStack = new StackFrame(classFile, newMethod);
 		for (int i = 0; i <= paramsCount; i++) {

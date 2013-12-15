@@ -40,6 +40,9 @@ public class NativeResolver {
 		if (method.getNameAndType().getName().equals("println") && method.getNameAndType().getDescriptor().equals("([C)V")) {
 			return new PrintlncaMethod();
 		}
+		if (method.getNameAndType().getName().equals("println") && method.getNameAndType().getDescriptor().equals("([I)V")) {
+			return new PrintlniaMethod();
+		}
 
 		if (method.getNameAndType().getName().equals("readFromFile")) {
 			return new ReadFromFileMethod();
@@ -145,6 +148,20 @@ public class NativeResolver {
 			char[] array = new char[arrayRef.getLength()];
 			for (int i = 0; i < arrayRef.getLength(); i++) {
 				array[i] = (char) arrayRef.getItem(i).value;
+			}
+			new NativeMethods().println(array);
+		}
+
+	}
+
+	public static class PrintlniaMethod extends NativeMethod {
+
+		@Override
+		protected void run(List<Value> params, Heap heap) {
+			PrimitiveArrayInstance arrayRef = heap.getPrimitiveArray((Reference) params.get(0));
+			int[] array = new int[arrayRef.getLength()];
+			for (int i = 0; i < arrayRef.getLength(); i++) {
+				array[i] = arrayRef.getItem(i).value;
 			}
 			new NativeMethods().println(array);
 		}

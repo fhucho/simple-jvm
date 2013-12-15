@@ -2,6 +2,13 @@
 package cz.simplejvm.app;
 
 public class ExampleClass extends Object {
+	private class DataHolder{
+		char[] data;
+		public DataHolder(char[] fname) {
+			data=nativeMethods.readFromFile(fname);
+		}
+
+	}
 	int a;
 	NativeMethods nativeMethods = new NativeMethods();
 
@@ -9,49 +16,27 @@ public class ExampleClass extends Object {
 		a = 10000;
 	}
 
-	public void addTest(int number) {
-		int result = a + number + 3;
-		nativeMethods.print(result);
-	}
-
-	public void testBoolean() {
-		boolean aaa = true;
-		if (aaa != false) {
-			nativeMethods.print(0);
-		} else {
-			nativeMethods.print(1);
-		}
-	}
-
-	public static void start2() {
-		int step = 3;
-		int size = 10;
-		int c = 0;
-		for (int i = 0; i < size; i++) {
-			new NativeMethods().print(i);
-			c += step;
-		}
-
-		ExampleClass clazz = new ExampleClass();
-		new NativeMethods().print(c);
-		clazz.addTest(c);
-		clazz.testBoolean();
-	}
-
-	public static void start() {
+	void testGc() {
 		char[] fname = {
 				'i', 'n', 'p', 'u', 't', '.', 't', 'x', 't'
 		};
-		char[] text = new NativeMethods().readFromFile(fname);
+		DataHolder data = new DataHolder(fname);
 		int i = 1;
 		while (i < 1000) {
 			i++;
-			char[] tmp = new NativeMethods().readFromFile(fname);
+			DataHolder tmp = new DataHolder(fname);
 		}
 		new NativeMethods().writeToFile(new char[] {
 				'o', 'u', 't'
-		}, text);
+		}, data.data);
 
+	}
+
+
+
+
+	public static void start() {
+		new ExampleClass().testGc();
 	}
 
 	public int arrayTest1(int a) {
